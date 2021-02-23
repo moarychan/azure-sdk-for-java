@@ -22,8 +22,8 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
  */
 public abstract class AADB2CWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    private OAuth2UserService<OidcUserRequest, OidcUser> oidcUserService;
+//    @Autowired
+//    private OAuth2UserService<OidcUserRequest, OidcUser> oidcUserService;
     @Autowired
     private AADB2CProperties properties;
     @Autowired
@@ -38,9 +38,9 @@ public abstract class AADB2CWebSecurityConfigurerAdapter extends WebSecurityConf
                 .and()
             .oauth2Login()
                 .loginProcessingUrl(properties.getLoginProcessingUrl())
-                .userInfoEndpoint()
-                    .oidcUserService(oidcUserService)
-                    .and()
+//                .userInfoEndpoint()
+//                    .oidcUserService(oidcUserService)
+//                    .and()
                 .authorizationEndpoint()
                     .authorizationRequestResolver(requestResolver)
                     .and()

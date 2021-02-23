@@ -79,17 +79,17 @@ public class AADB2CAutoConfiguration {
         }
     }
 
-    @Bean
+    /*@Bean
     @ConditionalOnMissingBean
     public OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository() {
         return new JacksonHttpSessionOAuth2AuthorizedClientRepository();
-    }
+    }*/
 
-    @Bean
+    /*@Bean
     @ConditionalOnMissingBean
     public OAuth2UserService<OidcUserRequest, OidcUser> oAuth2UserService() {
         return new AADB2COAuth2UserService(properties);
-    }
+    }*/
 
     @Bean
     @ConditionalOnMissingBean
@@ -140,13 +140,14 @@ public class AADB2CAutoConfiguration {
     }
 
     private ClientRegistration b2cClientRegistration(String userFlow) {
-        return createClientBuilder(userFlow, Arrays.asList(properties.getClientId(), "openid", "offline_access"));
+        // "openid",
+        return createClientBuilder(userFlow, Arrays.asList(properties.getClientId(), "offline_access"));
     }
 
     /**
      * Automatic configuration class for oauth2 login.
      */
-    @Configuration
+    /*@Configuration
     @ConditionalOnMissingBean(WebSecurityConfigurerAdapter.class)
     @EnableWebSecurity
     @ConditionalOnResource(resources = "classpath:aadb2c.enable.config")
@@ -156,5 +157,5 @@ public class AADB2CAutoConfiguration {
         protected void configure(HttpSecurity http) throws Exception {
             super.configure(http);
         }
-    }
+    }*/
 }
