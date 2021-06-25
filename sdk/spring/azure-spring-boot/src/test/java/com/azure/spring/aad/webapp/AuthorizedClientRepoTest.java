@@ -3,6 +3,8 @@
 
 package com.azure.spring.aad.webapp;
 
+import com.azure.spring.aad.AADClientRegistrationRepository;
+import com.azure.spring.aad.AADOAuth2AuthorizedClientRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.assertj.AssertableWebApplicationContext;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -39,7 +41,8 @@ public class AuthorizedClientRepoTest {
         WebApplicationContextRunnerUtils.getContextRunnerWithRequiredProperties()
             .withPropertyValues(
                 "azure.activedirectory.authorization-clients.graph.scopes = Calendars.Read",
-                "azure.activedirectory.base-uri = fake-uri")
+                "azure.activedirectory.authorization-clients.graph.authorization-grant-type = authorization_code",
+                "azure.activedirectory.base-uri = https://login.microsoftonline.com/")
             .run(context -> {
                 getBeans(context);
 
@@ -68,7 +71,8 @@ public class AuthorizedClientRepoTest {
         WebApplicationContextRunnerUtils.getContextRunnerWithRequiredProperties()
             .withPropertyValues(
                 "azure.activedirectory.authorization-clients.graph.scopes = Calendars.Read",
-                "azure.activedirectory.base-uri = fake-uri")
+                "azure.activedirectory.authorization-clients.graph.authorization-grant-type = authorization_code",
+                "azure.activedirectory.base-uri = https://login.microsoftonline.com/")
             .run(context -> {
                 getBeans(context);
 
@@ -93,7 +97,7 @@ public class AuthorizedClientRepoTest {
     }
 
     private void getBeans(AssertableWebApplicationContext context) {
-        AADWebAppClientRegistrationRepository clientRepo = context.getBean(AADWebAppClientRegistrationRepository.class);
+        AADClientRegistrationRepository clientRepo = context.getBean(AADClientRegistrationRepository.class);
         azure = clientRepo.findByRegistrationId("azure");
         graph = clientRepo.findByRegistrationId("graph");
 
@@ -127,7 +131,10 @@ public class AuthorizedClientRepoTest {
     }
 
     private Authentication createAuthentication() {
-        return new PreAuthenticatedAuthenticationToken("fake-user", "fake-crednetial");
+        PreAuthenticatedAuthenticationToken authenticationToken =
+            new PreAuthenticatedAuthenticationToken("fake-user", "fake-crednetial");
+        authenticationToken.setAuthenticated(true);
+        return authenticationToken;
     }
 
     private boolean isTokenExpired(OAuth2AccessToken token) {

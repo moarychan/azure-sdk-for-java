@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-package com.azure.spring.aad.webapi;
+package com.azure.spring.aad;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,9 +14,6 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.AuthenticatedPrincipalOAuth2AuthorizedClientRepository;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -26,7 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.support.TestPropertySourceUtils.addInlinedPropertiesToEnvironment;
 
-public class AADOAuth2AuthorizedClientCredentialRepositoryTest {
+public class AADOAuth2AuthorizedClientRepositoryClientCredentialTest {
 
     @Configuration
     public static class WebOAuth2ClientConfiguration {
@@ -34,12 +31,6 @@ public class AADOAuth2AuthorizedClientCredentialRepositoryTest {
         @Bean
         OAuth2AuthorizedClientService authorizedClientService(ClientRegistrationRepository clientRegistrationRepository) {
             return new InMemoryOAuth2AuthorizedClientService(clientRegistrationRepository);
-        }
-
-        @Bean
-        public OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository(
-            OAuth2AuthorizedClientService oAuth2AuthorizedClientService) {
-            return new AuthenticatedPrincipalOAuth2AuthorizedClientRepository(oAuth2AuthorizedClientService);
         }
     }
 
@@ -65,7 +56,7 @@ public class AADOAuth2AuthorizedClientCredentialRepositoryTest {
     private ClientRegistration fakeClientRegistration;
     private Authentication mockPrincipal;
     private OAuth2AuthorizedClient oAuth2AuthorizedClient;
-    private InMemoryClientRegistrationRepository clientRegistrationsRepo;
+    private ClientRegistrationRepository clientRegistrationsRepo;
     private InMemoryOAuth2AuthorizedClientService inMemoryOAuth2AuthorizedClientService;
 
     @BeforeEach
@@ -80,9 +71,9 @@ public class AADOAuth2AuthorizedClientCredentialRepositoryTest {
                 + ".com/xxxx-xxxxx-xxxx/.default",
             AAD_PROPERTY_PREFIX + "authorization-clients.fake.authorization-grant-type = client_credentials"
         );
-        context.register(WebOAuth2ClientConfiguration.class, AADResourceServerClientConfiguration.class);
+        context.register(WebOAuth2ClientConfiguration.class, AADConfiguration.class);
         context.refresh();
-        clientRegistrationsRepo = context.getBean(InMemoryClientRegistrationRepository.class);
+        clientRegistrationsRepo = context.getBean(AADClientRegistrationRepository.class);
         fakeClientRegistration = ClientRegistration
             .withRegistrationId("fake")
             .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)

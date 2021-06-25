@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-package com.azure.spring.aad.webapi;
+package com.azure.spring.aad;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,8 +16,6 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.AuthenticatedPrincipalOAuth2AuthorizedClientRepository;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -26,7 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.context.support.TestPropertySourceUtils.addInlinedPropertiesToEnvironment;
 
-public class AADOAuth2AuthorizedOboClientRepositoryTest {
+public class AADOAuth2AuthorizedClientRepositoryOnBehalfOfTest {
 
     @Configuration
     public static class WebOAuth2ClientConfiguration {
@@ -34,12 +32,6 @@ public class AADOAuth2AuthorizedOboClientRepositoryTest {
         @Bean
         OAuth2AuthorizedClientService authorizedClientService(ClientRegistrationRepository clientRegistrationRepository) {
             return new InMemoryOAuth2AuthorizedClientService(clientRegistrationRepository);
-        }
-
-        @Bean
-        public OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository(
-            OAuth2AuthorizedClientService oAuth2AuthorizedClientService) {
-            return new AuthenticatedPrincipalOAuth2AuthorizedClientRepository(oAuth2AuthorizedClientService);
         }
     }
 
@@ -51,7 +43,7 @@ public class AADOAuth2AuthorizedOboClientRepositoryTest {
     public static final String FAKE_PRINCIPAL_NAME = "fake-principal-name";
     public static final String FAKE_TOKEN_VALUE = "fake-token-value";
 
-    private InMemoryClientRegistrationRepository clientRegistrationsRepo;
+    private ClientRegistrationRepository clientRegistrationsRepo;
     private OAuth2AuthorizedClient client;
     private InMemoryOAuth2AuthorizedClientService inMemoryOAuth2AuthorizedClientService;
     private JwtAuthenticationToken jwtAuthenticationToken;
@@ -66,12 +58,13 @@ public class AADOAuth2AuthorizedOboClientRepositoryTest {
             AAD_PROPERTY_PREFIX + "tenant-id = fake-tenant-id",
             AAD_PROPERTY_PREFIX + "client-id = fake-client-id",
             AAD_PROPERTY_PREFIX + "client-secret = fake-client-secret",
-            AAD_PROPERTY_PREFIX + "authorization-clients.fake-graph.scopes = https://graph.microsoft.com/.default"
+            AAD_PROPERTY_PREFIX + "authorization-clients.fake-graph.scopes = https://graph.microsoft.com/.default",
+            AAD_PROPERTY_PREFIX + "authorization-clients.fake-graph.authorization-grant-type = on-behalf-of"
         );
-        context.register(WebOAuth2ClientConfiguration.class, AADResourceServerClientConfiguration.class);
+        context.register(WebOAuth2ClientConfiguration.class, AADConfiguration.class);
         context.refresh();
 
-        clientRegistrationsRepo = context.getBean(InMemoryClientRegistrationRepository.class);
+        clientRegistrationsRepo = context.getBean(AADClientRegistrationRepository.class);
         setupForAzureAuthorizedClient();
     }
 

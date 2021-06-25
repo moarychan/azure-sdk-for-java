@@ -176,6 +176,6 @@ public class AADOBOOAuth2AuthorizedClientProvider implements OAuth2AuthorizedCli
         parameters.put(OAuth2ParameterNames.ERROR_DESCRIPTION, "The resource server requires higher privileges "
             + "than "
             + "provided by the access token");
-        response.addHeader(HttpHeaders.WWW_AUTHENTICATE, Constants.BEARER_PREFIX + parameters.toString());
+        response.addHeader(HttpHeaders.WWW_AUTHENTICATE, Constants.BEARER_PREFIX + parameters);
     }
 }

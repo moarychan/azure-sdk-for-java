@@ -41,4 +41,13 @@ public class AuthorizationClientProperties {
     public void setOnDemand(boolean onDemand) {
         this.onDemand = onDemand;
     }
+
+    @Override
+    public String toString() {
+        return "AuthorizationClientProperties{"
+            + "scopes=" + scopes + ", "
+            + "onDemand=" + onDemand + ", "
+            + "authorizationGrantType=" + authorizationGrantType
+            + '}';
+    }
 }

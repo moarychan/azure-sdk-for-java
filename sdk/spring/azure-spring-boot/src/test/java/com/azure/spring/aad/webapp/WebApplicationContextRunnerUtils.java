@@ -3,6 +3,7 @@
 
 package com.azure.spring.aad.webapp;
 
+import com.azure.spring.aad.AADConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -43,7 +44,7 @@ public class WebApplicationContextRunnerUtils {
     public static WebApplicationContextRunner getContextRunner() {
         return new WebApplicationContextRunner()
             .withClassLoader(new FilteredClassLoader(BearerTokenAuthenticationToken.class))
-            .withUserConfiguration(WebApp.class, AADWebAppConfiguration.class);
+            .withUserConfiguration(WebApp.class, AADConfiguration.class);
     }
 
     @SuppressWarnings("unchecked")
