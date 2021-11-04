@@ -3,7 +3,9 @@
 
 package com.azure.spring.cloud.autoconfigure.eventhubs;
 
+import com.azure.messaging.eventhubs.EventHubClientBuilder;
 import com.azure.messaging.eventhubs.checkpointstore.blob.BlobCheckpointStore;
+import com.azure.spring.cloud.autoconfigure.condition.ConditionalOnAnyProperty;
 import com.azure.spring.cloud.autoconfigure.eventhubs.properties.AzureEventHubProperties;
 import com.azure.spring.service.storage.blob.BlobServiceClientBuilderFactory;
 import com.azure.storage.blob.BlobContainerAsyncClient;
@@ -14,7 +16,6 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,8 +28,10 @@ import static com.azure.spring.core.properties.AzurePropertiesUtils.mergeAzureCo
  * Configures a {@link BlobCheckpointStore}
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnClass(BlobCheckpointStore.class)
-@ConditionalOnProperty(prefix = "spring.cloud.azure.eventhubs.processor.checkpoint-store", name = { "container-name", "account-name" })
+@ConditionalOnClass({ EventHubClientBuilder.class, BlobCheckpointStore.class })
+@ConditionalOnAnyProperty(prefix = "spring.cloud",
+    name = {"azure.eventhubs.processor.checkpoint-store.account-name", "stream.binders"}
+)
 public class AzureBlobCheckpointStoreConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AzureBlobCheckpointStoreConfiguration.class);
@@ -40,11 +43,10 @@ public class AzureBlobCheckpointStoreConfiguration {
             BlobServiceClientBuilderFactory factory,
         AzureEventHubProperties eventHubProperties,
         ObjectProvider<BlobCheckpointStoreContainerInitializer> initializers) {
-        final AzureEventHubProperties.Processor.BlobCheckpointStore csProperties =
-            getCheckpointStoreProperties(eventHubProperties);
-
         final BlobContainerAsyncClient blobContainerAsyncClient = factory
-            .build().buildAsyncClient().getBlobContainerAsyncClient(csProperties.getContainerName());
+            .build()
+            .buildAsyncClient()
+            .getBlobContainerAsyncClient(eventHubProperties.getProcessor().getCheckpointStore().getContainerName());
 
         initializers.ifAvailable(initializer -> initializer.init(blobContainerAsyncClient));
 
@@ -55,10 +57,10 @@ public class AzureBlobCheckpointStoreConfiguration {
     @ConditionalOnMissingBean
     public BlobCheckpointStoreContainerInitializer blobCheckpointStoreContainerInitializer() {
         return containerAsyncClient -> {
-            if (Boolean.FALSE.equals(containerAsyncClient.exists().block(Duration.ofSeconds(3)))) {
+            if (Boolean.FALSE.equals(containerAsyncClient.exists().block(Duration.ofSeconds(300)))) {
                 LOGGER.debug("The checkpoint store container [{}] doesn't exist, will create the blob container now.",
                     containerAsyncClient.getBlobContainerName());
-                containerAsyncClient.create().block(Duration.ofSeconds(3));
+                containerAsyncClient.create().block(Duration.ofSeconds(300));
             }
         };
     }
@@ -66,7 +68,7 @@ public class AzureBlobCheckpointStoreConfiguration {
     @Bean(EVENT_HUB_PROCESSOR_CHECKPOINT_STORE_STORAGE_CLIENT_BUILDER_FACTORY_BEAN_NAME)
     @ConditionalOnMissingBean(name = EVENT_HUB_PROCESSOR_CHECKPOINT_STORE_STORAGE_CLIENT_BUILDER_FACTORY_BEAN_NAME)
     public BlobServiceClientBuilderFactory eventHubProcessorBlobServiceClientBuilderFactory(AzureEventHubProperties eventHubProperties) {
-        return new BlobServiceClientBuilderFactory(eventHubProperties.getProcessor().getCheckpointStore());
+        return new BlobServiceClientBuilderFactory(getCheckpointStoreProperties(eventHubProperties));
     }
 
     private AzureEventHubProperties.Processor.BlobCheckpointStore getCheckpointStoreProperties(
