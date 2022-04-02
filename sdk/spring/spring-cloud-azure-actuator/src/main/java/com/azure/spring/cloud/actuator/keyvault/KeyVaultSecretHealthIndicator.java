@@ -13,7 +13,7 @@ import java.time.Duration;
 import static com.azure.spring.cloud.actuator.implementation.util.ActuateConstants.DEFAULT_HEALTH_CHECK_TIMEOUT;
 
 /**
- * Indicator class of KeyVaultHealth
+ * Indicator class of Key Vault Secret Health
  */
 public class KeyVaultSecretHealthIndicator extends AbstractHealthIndicator {
 
@@ -22,7 +22,7 @@ public class KeyVaultSecretHealthIndicator extends AbstractHealthIndicator {
 
     /**
      * Creates a new instance of {@link KeyVaultSecretHealthIndicator}.
-     * @param secretAsyncClient the secretAsyncClient
+     * @param secretAsyncClient the secret async client
      */
     public KeyVaultSecretHealthIndicator(SecretAsyncClient secretAsyncClient) {
         this.secretAsyncClient = secretAsyncClient;
@@ -31,7 +31,7 @@ public class KeyVaultSecretHealthIndicator extends AbstractHealthIndicator {
     @Override
     protected void doHealthCheck(Health.Builder builder) {
         try {
-            this.secretAsyncClient.getSecretWithResponse("azure-spring-none-existing-secret", "")
+            this.secretAsyncClient.getSecretWithResponse("spring-cloud-azure-not-existing-secret", "")
                 .block(timeout);
             builder.up();
         } catch (Exception e) {

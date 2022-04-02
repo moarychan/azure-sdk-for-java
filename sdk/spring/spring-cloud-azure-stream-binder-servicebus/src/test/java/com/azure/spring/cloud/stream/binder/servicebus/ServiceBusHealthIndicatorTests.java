@@ -12,9 +12,8 @@ import com.azure.spring.cloud.stream.binder.servicebus.core.provisioning.Service
 import com.azure.spring.integration.core.handler.DefaultMessageHandler;
 import com.azure.spring.integration.servicebus.inbound.ServiceBusInboundChannelAdapter;
 import com.azure.spring.messaging.AzureHeaders;
-import com.azure.spring.messaging.checkpoint.CheckpointMode;
 import com.azure.spring.messaging.servicebus.core.ServiceBusTemplate;
-import com.azure.spring.messaging.servicebus.implementation.core.DefaultServiceBusNamespaceProducerFactory;
+import com.azure.spring.messaging.servicebus.core.DefaultServiceBusNamespaceProducerFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -169,7 +168,6 @@ class ServiceBusHealthIndicatorTests {
         serviceBusConsumerProperties.setEntityName(ENTITY_NAME);
         serviceBusConsumerProperties.setEntityType(ServiceBusEntityType.QUEUE);
         serviceBusConsumerProperties.setNamespace(NAMESPACE_NAME);
-        serviceBusConsumerProperties.setCheckpointMode(CheckpointMode.RECORD);
         ServiceBusBindingProperties bindingProperties = new ServiceBusBindingProperties();
         bindingProperties.setConsumer(serviceBusConsumerProperties);
 

@@ -10,6 +10,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.net.MalformedURLException;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -61,12 +62,12 @@ public class AadB2cProperties implements InitializingBean {
     /**
      * Connection Timeout for the JWKSet Remote URL call.
      */
-    private int jwtConnectTimeout = RemoteJWKSet.DEFAULT_HTTP_CONNECT_TIMEOUT; /* milliseconds */
+    private Duration jwtConnectTimeout = Duration.ofMillis(RemoteJWKSet.DEFAULT_HTTP_CONNECT_TIMEOUT);
 
     /**
      * Read Timeout for the JWKSet Remote URL call.
      */
-    private int jwtReadTimeout = RemoteJWKSet.DEFAULT_HTTP_READ_TIMEOUT; /* milliseconds */
+    private Duration jwtReadTimeout = Duration.ofMillis(RemoteJWKSet.DEFAULT_HTTP_READ_TIMEOUT);
 
     /**
      * Size limit in Bytes of the JWKSet Remote URL call.
@@ -81,7 +82,7 @@ public class AadB2cProperties implements InitializingBean {
     /**
      * Additional parameters for authentication.
      */
-    private Map<String, Object> authenticateAdditionalParameters;
+    private final Map<String, Object> authenticateAdditionalParameters = new HashMap<>();
 
     /**
      * User name attribute name.
@@ -111,7 +112,7 @@ public class AadB2cProperties implements InitializingBean {
     /**
      * Specify client configuration.
      */
-    private Map<String, AuthorizationClientProperties> authorizationClients = new HashMap<>();
+    private final Map<String, AuthorizationClientProperties> authorizationClients = new HashMap<>();
 
     @Override
     public void afterPropertiesSet() {
@@ -284,15 +285,6 @@ public class AadB2cProperties implements InitializingBean {
     }
 
     /**
-     * Sets the additional authenticate parameters.
-     *
-     * @param authenticateAdditionalParameters the additional authenticate parameters
-     */
-    public void setAuthenticateAdditionalParameters(Map<String, Object> authenticateAdditionalParameters) {
-        this.authenticateAdditionalParameters = authenticateAdditionalParameters;
-    }
-
-    /**
      * Gets the username attribute name.
      *
      * @return the username attribute name
@@ -351,7 +343,7 @@ public class AadB2cProperties implements InitializingBean {
      *
      * @return the JWT connect timeout
      */
-    public int getJwtConnectTimeout() {
+    public Duration getJwtConnectTimeout() {
         return jwtConnectTimeout;
     }
 
@@ -360,7 +352,7 @@ public class AadB2cProperties implements InitializingBean {
      *
      * @param jwtConnectTimeout the JWT connect timeout
      */
-    public void setJwtConnectTimeout(int jwtConnectTimeout) {
+    public void setJwtConnectTimeout(Duration jwtConnectTimeout) {
         this.jwtConnectTimeout = jwtConnectTimeout;
     }
 
@@ -369,7 +361,7 @@ public class AadB2cProperties implements InitializingBean {
      *
      * @return the JWT read timeout
      */
-    public int getJwtReadTimeout() {
+    public Duration getJwtReadTimeout() {
         return jwtReadTimeout;
     }
 
@@ -378,7 +370,7 @@ public class AadB2cProperties implements InitializingBean {
      *
      * @param jwtReadTimeout the JWT read timeout
      */
-    public void setJwtReadTimeout(int jwtReadTimeout) {
+    public void setJwtReadTimeout(Duration jwtReadTimeout) {
         this.jwtReadTimeout = jwtReadTimeout;
     }
 
@@ -416,14 +408,5 @@ public class AadB2cProperties implements InitializingBean {
      */
     public Map<String, AuthorizationClientProperties> getAuthorizationClients() {
         return authorizationClients;
-    }
-
-    /**
-     * Sets the authorization clients.
-     *
-     * @param authorizationClients the authorization clients
-     */
-    public void setAuthorizationClients(Map<String, AuthorizationClientProperties> authorizationClients) {
-        this.authorizationClients = authorizationClients;
     }
 }

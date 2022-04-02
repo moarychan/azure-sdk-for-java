@@ -4,7 +4,7 @@
 package com.azure.spring.cloud.autoconfigure.aad.implementation.webapp;
 
 import com.azure.spring.cloud.autoconfigure.aad.implementation.oauth2.AbstractOAuth2AuthorizationCodeGrantRequestEntityConverter;
-import com.azure.spring.cloud.core.AzureSpringIdentifier;
+import com.azure.spring.cloud.core.implementation.util.AzureSpringIdentifier;
 import org.springframework.security.oauth2.client.endpoint.AbstractOAuth2AuthorizationGrantRequest;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -14,7 +14,7 @@ import org.springframework.util.MultiValueMap;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.azure.spring.cloud.autoconfigure.aad.implementation.oauth2.AadClientRegistrationRepository.AZURE_CLIENT_REGISTRATION_ID;
+import static com.azure.spring.cloud.autoconfigure.aad.AadClientRegistrationRepository.AZURE_CLIENT_REGISTRATION_ID;
 
 /**
  * Used to set "scope" parameter when use "auth-code" to get "access_token".

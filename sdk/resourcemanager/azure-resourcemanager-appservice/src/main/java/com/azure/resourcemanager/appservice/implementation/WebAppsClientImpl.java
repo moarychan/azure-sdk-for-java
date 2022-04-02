@@ -32,7 +32,6 @@ import com.azure.core.management.exception.ManagementException;
 import com.azure.core.management.polling.PollResult;
 import com.azure.core.util.Context;
 import com.azure.core.util.FluxUtil;
-import com.azure.core.util.logging.ClientLogger;
 import com.azure.core.util.polling.PollerFlux;
 import com.azure.core.util.polling.SyncPoller;
 import com.azure.resourcemanager.appservice.fluent.WebAppsClient;
@@ -146,8 +145,6 @@ import reactor.core.publisher.Mono;
 /** An instance of this class provides access to all the operations defined in WebAppsClient. */
 public final class WebAppsClientImpl
     implements InnerSupportsGet<SiteInner>, InnerSupportsListing<SiteInner>, InnerSupportsDelete<Void>, WebAppsClient {
-    private final ClientLogger logger = new ClientLogger(WebAppsClientImpl.class);
-
     /** The proxy service used to perform REST calls. */
     private final WebAppsService service;
 
@@ -3249,6 +3246,22 @@ public final class WebAppsClientImpl
             Context context);
 
         @Headers({"Content-Type: application/json"})
+        @Get(
+            "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}"
+                + "/slots/{slot}/config/authsettingsV2")
+        @ExpectedResponses({200})
+        @UnexpectedResponseExceptionType(DefaultErrorResponseErrorException.class)
+        Mono<Response<SiteAuthSettingsV2Inner>> getAuthSettingsV2WithoutSecretsSlot(
+            @HostParam("$host") String endpoint,
+            @PathParam("resourceGroupName") String resourceGroupName,
+            @PathParam("name") String name,
+            @PathParam("slot") String slot,
+            @PathParam("subscriptionId") String subscriptionId,
+            @QueryParam("api-version") String apiVersion,
+            @HeaderParam("Accept") String accept,
+            Context context);
+
+        @Headers({"Content-Type: application/json"})
         @Put(
             "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}"
                 + "/slots/{slot}/config/authsettingsV2")
@@ -5822,7 +5835,7 @@ public final class WebAppsClientImpl
         @Post(
             "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}"
                 + "/slots/{slot}/syncfunctiontriggers")
-        @ExpectedResponses({200, 204})
+        @ExpectedResponses({204})
         @UnexpectedResponseExceptionType(DefaultErrorResponseErrorException.class)
         Mono<Response<Void>> syncFunctionTriggersSlot(
             @HostParam("$host") String endpoint,
@@ -6335,7 +6348,7 @@ public final class WebAppsClientImpl
         @Post(
             "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}"
                 + "/syncfunctiontriggers")
-        @ExpectedResponses({200, 204})
+        @ExpectedResponses({204})
         @UnexpectedResponseExceptionType(DefaultErrorResponseErrorException.class)
         Mono<Response<Void>> syncFunctionTriggers(
             @HostParam("$host") String endpoint,
@@ -42397,6 +42410,178 @@ public final class WebAppsClientImpl
     public Response<SiteAuthSettingsInner> getAuthSettingsSlotWithResponse(
         String resourceGroupName, String name, String slot, Context context) {
         return getAuthSettingsSlotWithResponseAsync(resourceGroupName, name, slot, context).block();
+    }
+
+    /**
+     * Gets site's Authentication / Authorization settings for apps via the V2 format.
+     *
+     * @param resourceGroupName Name of the resource group to which the resource belongs.
+     * @param name Name of the app.
+     * @param slot Name of the deployment slot. If a slot is not specified, the API will get the settings for the
+     *     production slot.
+     * @throws IllegalArgumentException thrown if parameters fail the validation.
+     * @throws DefaultErrorResponseErrorException thrown if the request is rejected by server.
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent.
+     * @return site's Authentication / Authorization settings for apps via the V2 format along with {@link Response} on
+     *     successful completion of {@link Mono}.
+     */
+    @ServiceMethod(returns = ReturnType.SINGLE)
+    public Mono<Response<SiteAuthSettingsV2Inner>> getAuthSettingsV2WithoutSecretsSlotWithResponseAsync(
+        String resourceGroupName, String name, String slot) {
+        if (this.client.getEndpoint() == null) {
+            return Mono
+                .error(
+                    new IllegalArgumentException(
+                        "Parameter this.client.getEndpoint() is required and cannot be null."));
+        }
+        if (resourceGroupName == null) {
+            return Mono
+                .error(new IllegalArgumentException("Parameter resourceGroupName is required and cannot be null."));
+        }
+        if (name == null) {
+            return Mono.error(new IllegalArgumentException("Parameter name is required and cannot be null."));
+        }
+        if (slot == null) {
+            return Mono.error(new IllegalArgumentException("Parameter slot is required and cannot be null."));
+        }
+        if (this.client.getSubscriptionId() == null) {
+            return Mono
+                .error(
+                    new IllegalArgumentException(
+                        "Parameter this.client.getSubscriptionId() is required and cannot be null."));
+        }
+        final String accept = "application/json";
+        return FluxUtil
+            .withContext(
+                context ->
+                    service
+                        .getAuthSettingsV2WithoutSecretsSlot(
+                            this.client.getEndpoint(),
+                            resourceGroupName,
+                            name,
+                            slot,
+                            this.client.getSubscriptionId(),
+                            this.client.getApiVersion(),
+                            accept,
+                            context))
+            .contextWrite(context -> context.putAll(FluxUtil.toReactorContext(this.client.getContext()).readOnly()));
+    }
+
+    /**
+     * Gets site's Authentication / Authorization settings for apps via the V2 format.
+     *
+     * @param resourceGroupName Name of the resource group to which the resource belongs.
+     * @param name Name of the app.
+     * @param slot Name of the deployment slot. If a slot is not specified, the API will get the settings for the
+     *     production slot.
+     * @param context The context to associate with this operation.
+     * @throws IllegalArgumentException thrown if parameters fail the validation.
+     * @throws DefaultErrorResponseErrorException thrown if the request is rejected by server.
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent.
+     * @return site's Authentication / Authorization settings for apps via the V2 format along with {@link Response} on
+     *     successful completion of {@link Mono}.
+     */
+    @ServiceMethod(returns = ReturnType.SINGLE)
+    private Mono<Response<SiteAuthSettingsV2Inner>> getAuthSettingsV2WithoutSecretsSlotWithResponseAsync(
+        String resourceGroupName, String name, String slot, Context context) {
+        if (this.client.getEndpoint() == null) {
+            return Mono
+                .error(
+                    new IllegalArgumentException(
+                        "Parameter this.client.getEndpoint() is required and cannot be null."));
+        }
+        if (resourceGroupName == null) {
+            return Mono
+                .error(new IllegalArgumentException("Parameter resourceGroupName is required and cannot be null."));
+        }
+        if (name == null) {
+            return Mono.error(new IllegalArgumentException("Parameter name is required and cannot be null."));
+        }
+        if (slot == null) {
+            return Mono.error(new IllegalArgumentException("Parameter slot is required and cannot be null."));
+        }
+        if (this.client.getSubscriptionId() == null) {
+            return Mono
+                .error(
+                    new IllegalArgumentException(
+                        "Parameter this.client.getSubscriptionId() is required and cannot be null."));
+        }
+        final String accept = "application/json";
+        context = this.client.mergeContext(context);
+        return service
+            .getAuthSettingsV2WithoutSecretsSlot(
+                this.client.getEndpoint(),
+                resourceGroupName,
+                name,
+                slot,
+                this.client.getSubscriptionId(),
+                this.client.getApiVersion(),
+                accept,
+                context);
+    }
+
+    /**
+     * Gets site's Authentication / Authorization settings for apps via the V2 format.
+     *
+     * @param resourceGroupName Name of the resource group to which the resource belongs.
+     * @param name Name of the app.
+     * @param slot Name of the deployment slot. If a slot is not specified, the API will get the settings for the
+     *     production slot.
+     * @throws IllegalArgumentException thrown if parameters fail the validation.
+     * @throws DefaultErrorResponseErrorException thrown if the request is rejected by server.
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent.
+     * @return site's Authentication / Authorization settings for apps via the V2 format on successful completion of
+     *     {@link Mono}.
+     */
+    @ServiceMethod(returns = ReturnType.SINGLE)
+    public Mono<SiteAuthSettingsV2Inner> getAuthSettingsV2WithoutSecretsSlotAsync(
+        String resourceGroupName, String name, String slot) {
+        return getAuthSettingsV2WithoutSecretsSlotWithResponseAsync(resourceGroupName, name, slot)
+            .flatMap(
+                (Response<SiteAuthSettingsV2Inner> res) -> {
+                    if (res.getValue() != null) {
+                        return Mono.just(res.getValue());
+                    } else {
+                        return Mono.empty();
+                    }
+                });
+    }
+
+    /**
+     * Gets site's Authentication / Authorization settings for apps via the V2 format.
+     *
+     * @param resourceGroupName Name of the resource group to which the resource belongs.
+     * @param name Name of the app.
+     * @param slot Name of the deployment slot. If a slot is not specified, the API will get the settings for the
+     *     production slot.
+     * @throws IllegalArgumentException thrown if parameters fail the validation.
+     * @throws DefaultErrorResponseErrorException thrown if the request is rejected by server.
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent.
+     * @return site's Authentication / Authorization settings for apps via the V2 format.
+     */
+    @ServiceMethod(returns = ReturnType.SINGLE)
+    public SiteAuthSettingsV2Inner getAuthSettingsV2WithoutSecretsSlot(
+        String resourceGroupName, String name, String slot) {
+        return getAuthSettingsV2WithoutSecretsSlotAsync(resourceGroupName, name, slot).block();
+    }
+
+    /**
+     * Gets site's Authentication / Authorization settings for apps via the V2 format.
+     *
+     * @param resourceGroupName Name of the resource group to which the resource belongs.
+     * @param name Name of the app.
+     * @param slot Name of the deployment slot. If a slot is not specified, the API will get the settings for the
+     *     production slot.
+     * @param context The context to associate with this operation.
+     * @throws IllegalArgumentException thrown if parameters fail the validation.
+     * @throws DefaultErrorResponseErrorException thrown if the request is rejected by server.
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent.
+     * @return site's Authentication / Authorization settings for apps via the V2 format along with {@link Response}.
+     */
+    @ServiceMethod(returns = ReturnType.SINGLE)
+    public Response<SiteAuthSettingsV2Inner> getAuthSettingsV2WithoutSecretsSlotWithResponse(
+        String resourceGroupName, String name, String slot, Context context) {
+        return getAuthSettingsV2WithoutSecretsSlotWithResponseAsync(resourceGroupName, name, slot, context).block();
     }
 
     /**

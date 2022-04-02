@@ -7,7 +7,7 @@ import com.azure.spring.cloud.autoconfigure.AzureServiceConfigurationBase;
 import com.azure.spring.cloud.autoconfigure.condition.ConditionalOnAnyProperty;
 import com.azure.spring.cloud.autoconfigure.context.AzureGlobalProperties;
 import com.azure.spring.cloud.autoconfigure.implementation.storage.blob.properties.AzureStorageBlobProperties;
-import com.azure.spring.cloud.core.AzureSpringIdentifier;
+import com.azure.spring.cloud.core.implementation.util.AzureSpringIdentifier;
 import com.azure.spring.cloud.core.provider.connectionstring.ServiceConnectionStringProvider;
 import com.azure.spring.cloud.core.provider.connectionstring.StaticConnectionStringProvider;
 import com.azure.spring.cloud.core.customizer.AzureServiceClientBuilderCustomizer;
@@ -22,6 +22,7 @@ import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -32,7 +33,9 @@ import static com.azure.spring.cloud.autoconfigure.context.AzureContextUtils.STO
 import static com.azure.spring.cloud.autoconfigure.context.AzureContextUtils.STORAGE_BLOB_CLIENT_BUILDER_FACTORY_BEAN_NAME;
 
 /**
- * Auto-configuration for a {@link BlobServiceClientBuilder} and blob service clients.
+ * {@link EnableAutoConfiguration Auto-configuration} for Azure Storage Blob support.
+ *
+ * @since 4.0.0
  */
 @ConditionalOnClass(BlobServiceClientBuilder.class)
 @ConditionalOnProperty(value = "spring.cloud.azure.storage.blob.enabled", havingValue = "true", matchIfMissing = true)
@@ -46,7 +49,7 @@ public class AzureStorageBlobAutoConfiguration extends AzureServiceConfiguration
     @Bean
     @ConfigurationProperties(AzureStorageBlobProperties.PREFIX)
     AzureStorageBlobProperties azureStorageBlobProperties() {
-        return loadProperties(this.azureGlobalProperties, new AzureStorageBlobProperties());
+        return loadProperties(getAzureGlobalProperties(), new AzureStorageBlobProperties());
     }
 
     @Bean

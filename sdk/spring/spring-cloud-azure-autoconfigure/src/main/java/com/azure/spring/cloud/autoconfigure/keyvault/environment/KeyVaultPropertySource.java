@@ -14,26 +14,14 @@ import org.springframework.core.env.EnumerablePropertySource;
 public class KeyVaultPropertySource extends EnumerablePropertySource<KeyVaultOperation> {
 
     private final KeyVaultOperation operations;
-    public static final String DEFAULT_AZURE_KEYVAULT_PROPERTYSOURCE_NAME = "azurekv";
 
     /**
-     * Creates a new instance of {@link KeyVaultPropertySource}.
-     *
-     * @param keyVaultName the KeyVault name
-     * @param operation the KeyVault operation
+     * Create a new {@code KeyVaultPropertySource} with the given name and {@link KeyVaultOperation}.
+     * @param name the associated name
+     * @param operation the {@link KeyVaultOperation}
      */
-    public KeyVaultPropertySource(String keyVaultName, KeyVaultOperation operation) {
-        super(keyVaultName, operation);
-        this.operations = operation;
-    }
-
-    /**
-     * Creates a new instance of {@link KeyVaultPropertySource}.
-     *
-     * @param operation the KeyVault operation
-     */
-    public KeyVaultPropertySource(KeyVaultOperation operation) {
-        super(DEFAULT_AZURE_KEYVAULT_PROPERTYSOURCE_NAME, operation);
+    public KeyVaultPropertySource(String name, KeyVaultOperation operation) {
+        super(name, operation);
         this.operations = operation;
     }
 
@@ -47,7 +35,9 @@ public class KeyVaultPropertySource extends EnumerablePropertySource<KeyVaultOpe
         return operations.getProperty(name);
     }
 
-    boolean isUp() {
-        return operations.isUp();
+    @Override
+    public boolean containsProperty(String name) {
+        return getProperty(name) != null;
     }
+
 }

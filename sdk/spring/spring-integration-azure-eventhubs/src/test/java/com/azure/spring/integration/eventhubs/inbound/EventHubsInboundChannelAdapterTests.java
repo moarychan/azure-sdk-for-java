@@ -9,31 +9,29 @@ import com.azure.messaging.eventhubs.models.ErrorContext;
 import com.azure.messaging.eventhubs.models.EventBatchContext;
 import com.azure.messaging.eventhubs.models.EventContext;
 import com.azure.messaging.eventhubs.models.PartitionContext;
+import com.azure.spring.cloud.service.eventhubs.consumer.EventHubsBatchMessageListener;
+import com.azure.spring.cloud.service.eventhubs.consumer.EventHubsErrorHandler;
+import com.azure.spring.cloud.service.eventhubs.consumer.EventHubsRecordMessageListener;
+import com.azure.spring.cloud.service.listener.MessageListener;
+import com.azure.spring.integration.core.implementation.instrumentation.DefaultInstrumentationManager;
+import com.azure.spring.integration.core.instrumentation.Instrumentation;
+import com.azure.spring.integration.eventhubs.implementation.health.EventHubsProcessorInstrumentation;
+import com.azure.spring.messaging.ListenerMode;
+import com.azure.spring.messaging.converter.AbstractAzureMessageConverter;
 import com.azure.spring.messaging.eventhubs.core.EventHubsProcessorFactory;
+import com.azure.spring.messaging.eventhubs.core.checkpoint.CheckpointConfig;
+import com.azure.spring.messaging.eventhubs.core.checkpoint.CheckpointMode;
 import com.azure.spring.messaging.eventhubs.core.listener.EventHubsMessageListenerContainer;
 import com.azure.spring.messaging.eventhubs.core.properties.EventHubsContainerProperties;
 import com.azure.spring.messaging.eventhubs.implementation.core.listener.adapter.BatchMessagingMessageListenerAdapter;
-import com.azure.spring.integration.eventhubs.implementation.health.EventHubsProcessorInstrumentation;
-import com.azure.spring.integration.core.implementation.instrumentation.DefaultInstrumentationManager;
-import com.azure.spring.integration.core.instrumentation.Instrumentation;
-import com.azure.spring.messaging.ListenerMode;
-import com.azure.spring.messaging.checkpoint.CheckpointConfig;
-import com.azure.spring.messaging.checkpoint.CheckpointMode;
-import com.azure.spring.messaging.converter.AbstractAzureMessageConverter;
-import com.azure.spring.cloud.service.eventhubs.consumer.EventHubsBatchMessageListener;
-import com.azure.spring.cloud.service.eventhubs.consumer.EventHubsErrorHandler;
-import com.azure.spring.cloud.service.eventhubs.consumer.EventHubsMessageListener;
-import com.azure.spring.cloud.service.eventhubs.consumer.EventHubsRecordMessageListener;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.azure.spring.messaging.eventhubs.support.converter.EventHubsBatchMessageConverter;
+import com.azure.spring.messaging.eventhubs.support.converter.EventHubsMessageConverter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.messaging.Message;
 import reactor.core.publisher.Mono;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -58,20 +56,17 @@ class EventHubsInboundChannelAdapterTests {
     private EventHubsProcessorFactory processorFactory;
     private EventHubsContainerProperties containerProperties;
 
-    private final String consumerGroup = "group";
-    private final String eventHub = "dest";
-    private final String[] payloads = { "payload1", "payload2" };
-    private final List<Message<?>> messages = Arrays.stream(payloads)
-                                                    .map(p -> MessageBuilder.withPayload(p).build())
-                                                    .collect(Collectors.toList());
+    private static final String CONSUMER_GROUP = "group";
+    private static final String EVENT_HUB = "dest";
+
     @BeforeEach
     void setUp() {
         this.processorFactory = mock(EventHubsProcessorFactory.class);
-        when(processorFactory.createProcessor(eq(eventHub), eq(consumerGroup), isA(EventHubsContainerProperties.class))).thenReturn(mock(EventProcessorClient.class));
+        when(processorFactory.createProcessor(eq(EVENT_HUB), eq(CONSUMER_GROUP), isA(EventHubsContainerProperties.class))).thenReturn(mock(EventProcessorClient.class));
 
         this.containerProperties = new EventHubsContainerProperties();
-        containerProperties.setEventHubName(eventHub);
-        containerProperties.setConsumerGroup(consumerGroup);
+        containerProperties.setEventHubName(EVENT_HUB);
+        containerProperties.setConsumerGroup(CONSUMER_GROUP);
 
         this.adapter = new EventHubsInboundChannelAdapter(
             new EventHubsMessageListenerContainer(processorFactory, containerProperties));
@@ -121,7 +116,7 @@ class EventHubsInboundChannelAdapterTests {
 
     @Test
     void setMessageConverter() {
-        TestAzureMessageConverter converter = new TestAzureMessageConverter();
+        AbstractAzureMessageConverter<EventData, EventData> converter = mock(EventHubsMessageConverter.class);
         this.adapter.setMessageConverter(converter);
         assertThat(this.adapter).extracting("recordListener").extracting("messageConverter").isEqualTo(converter);
         assertThat(this.adapter).extracting("batchListener").extracting("messageConverter").isNotEqualTo(converter);
@@ -129,7 +124,7 @@ class EventHubsInboundChannelAdapterTests {
 
     @Test
     void setBatchMessageConverter() {
-        TestBatchAzureMessageConverter converter = new TestBatchAzureMessageConverter();
+        AbstractAzureMessageConverter<EventBatchContext, EventData> converter = mock(EventHubsBatchMessageConverter.class);
         this.adapter.setBatchMessageConverter(converter);
         assertThat(this.adapter).extracting("batchListener").extracting("messageConverter").isEqualTo(converter);
         assertThat(this.adapter).extracting("recordListener").extracting("messageConverter").isNotEqualTo(converter);
@@ -168,7 +163,7 @@ class EventHubsInboundChannelAdapterTests {
         channelAdapter.onInit();
         channelAdapter.doStart();
 
-        EventHubsMessageListener messageListener = listenerContainer.getContainerProperties().getMessageListener();
+        MessageListener<?> messageListener = listenerContainer.getContainerProperties().getMessageListener();
         assertTrue(messageListener instanceof EventHubsRecordMessageListener);
         List<String> payloads = Arrays.asList("a", "b", "c");
         payloads.stream()
@@ -179,7 +174,7 @@ class EventHubsInboundChannelAdapterTests {
                     when(mock.updateCheckpointAsync()).thenReturn(Mono.empty());
                     return mock;
                 })
-                .forEach(eventContext -> ((EventHubsRecordMessageListener) messageListener).onEvent(eventContext));
+                .forEach(eventContext -> ((EventHubsRecordMessageListener) messageListener).onMessage(eventContext));
 
 
         assertTrue(latch.await(5L, TimeUnit.SECONDS), "Failed to receive message");
@@ -218,7 +213,7 @@ class EventHubsInboundChannelAdapterTests {
         channelAdapter.onInit();
         channelAdapter.doStart();
 
-        EventHubsMessageListener messageListener = listenerContainer.getContainerProperties().getMessageListener();
+        MessageListener<?> messageListener = listenerContainer.getContainerProperties().getMessageListener();
         assertTrue(messageListener instanceof EventHubsBatchMessageListener);
         List<String> payloads = Arrays.asList("a", "b", "c", "d", "e", "f");
         IntStream.range(0, 3)
@@ -229,7 +224,7 @@ class EventHubsInboundChannelAdapterTests {
                      when(mock.updateCheckpointAsync()).thenReturn(Mono.empty());
                      return mock;
                  })
-                .forEach(eventContext -> ((EventHubsBatchMessageListener) messageListener).onEventBatch(eventContext));
+                .forEach(eventContext -> ((EventHubsBatchMessageListener) messageListener).onMessage(eventContext));
 
 
         assertTrue(latch.await(5L, TimeUnit.SECONDS), "Failed to receive message");
@@ -246,10 +241,10 @@ class EventHubsInboundChannelAdapterTests {
             new EventHubsMessageListenerContainer(this.processorFactory, this.containerProperties);
         EventHubsInboundChannelAdapter channelAdapter = new EventHubsInboundChannelAdapter(listenerContainer);
 
-        String instrumentationId = CONSUMER + ":" + eventHub;
+        String instrumentationId = CONSUMER + ":" + EVENT_HUB;
 
         EventHubsProcessorInstrumentation processorInstrumentation = new EventHubsProcessorInstrumentation(
-            eventHub, CONSUMER, Duration.ofMinutes(1));
+            EVENT_HUB, CONSUMER, Duration.ofMinutes(1));
         instrumentationManager.addHealthInstrumentation(processorInstrumentation);
 
         processorInstrumentation.setStatus(Instrumentation.Status.UP);
@@ -269,51 +264,4 @@ class EventHubsInboundChannelAdapterTests {
         assertEquals(healthInstrumentation.getException().getMessage(), "test");
     }
 
-    static class TestAzureMessageConverter extends AbstractAzureMessageConverter<EventData, EventData> {
-
-
-        @Override
-        protected ObjectMapper getObjectMapper() {
-            return null;
-        }
-
-        @Override
-        protected Object getPayload(EventData azureMessage) {
-            return azureMessage.getBody();
-        }
-
-        @Override
-        protected EventData fromString(String payload) {
-            return new EventData(payload.getBytes(StandardCharsets.UTF_8));
-        }
-
-        @Override
-        protected EventData fromByte(byte[] payload) {
-            return new EventData(payload);
-        }
-    }
-
-    static class TestBatchAzureMessageConverter extends AbstractAzureMessageConverter<EventBatchContext, EventData> {
-
-
-        @Override
-        protected ObjectMapper getObjectMapper() {
-            return null;
-        }
-
-        @Override
-        protected Object getPayload(EventBatchContext azureMessage) {
-            return azureMessage.getEvents().stream().map(EventData::getBody).collect(Collectors.toList());
-        }
-
-        @Override
-        protected EventData fromString(String payload) {
-            return new EventData(payload.getBytes(StandardCharsets.UTF_8));
-        }
-
-        @Override
-        protected EventData fromByte(byte[] payload) {
-            return new EventData(payload);
-        }
-    }
 }

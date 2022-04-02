@@ -10,6 +10,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.util.StringUtils;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,9 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
-import static com.azure.spring.cloud.autoconfigure.aad.implementation.oauth2.AadClientRegistrationRepository.AZURE_CLIENT_REGISTRATION_ID;
+import static com.azure.spring.cloud.autoconfigure.aad.AadClientRegistrationRepository.AZURE_CLIENT_REGISTRATION_ID;
 import static com.azure.spring.cloud.autoconfigure.aad.properties.AadApplicationType.inferApplicationTypeByDependencies;
 import static com.azure.spring.cloud.autoconfigure.aad.properties.AadAuthorizationGrantType.AUTHORIZATION_CODE;
 import static com.azure.spring.cloud.autoconfigure.aad.properties.AadAuthorizationGrantType.AZURE_DELEGATED;
@@ -36,8 +36,6 @@ public class AadAuthenticationProperties implements InitializingBean {
     public static final String PREFIX = "spring.cloud.azure.active-directory";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AadAuthenticationProperties.class);
-    private static final long DEFAULT_JWK_SET_CACHE_LIFESPAN = TimeUnit.MINUTES.toMillis(5);
-    private static final long DEFAULT_JWK_SET_CACHE_REFRESH_TIME = DEFAULT_JWK_SET_CACHE_LIFESPAN;
 
     /**
      * Profile of Azure cloud environment.
@@ -55,7 +53,6 @@ public class AadAuthenticationProperties implements InitializingBean {
     /**
      * Default UserGroup configuration.
      */
-    @NestedConfigurationProperty
     private final UserGroupProperties userGroup = new UserGroupProperties();
 
     /**
@@ -77,17 +74,17 @@ public class AadAuthenticationProperties implements InitializingBean {
     /**
      * Add additional parameters to the Authorization URL.
      */
-    private Map<String, Object> authenticateAdditionalParameters;
+    private final Map<String, Object> authenticateAdditionalParameters = new HashMap<>();
 
     /**
      * Connection Timeout for the JWKSet Remote URL call.
      */
-    private int jwtConnectTimeout = RemoteJWKSet.DEFAULT_HTTP_CONNECT_TIMEOUT; /* milliseconds */
+    private Duration jwtConnectTimeout = Duration.ofMillis(RemoteJWKSet.DEFAULT_HTTP_CONNECT_TIMEOUT);
 
     /**
      * Read Timeout for the JWKSet Remote URL call.
      */
-    private int jwtReadTimeout = RemoteJWKSet.DEFAULT_HTTP_READ_TIMEOUT; /* milliseconds */
+    private Duration jwtReadTimeout = Duration.ofMillis(RemoteJWKSet.DEFAULT_HTTP_READ_TIMEOUT);
 
     /**
      * Size limit in Bytes of the JWKSet Remote URL call.
@@ -97,12 +94,12 @@ public class AadAuthenticationProperties implements InitializingBean {
     /**
      * The lifespan of the cached JWK set before it expires, default is 5 minutes.
      */
-    private long jwkSetCacheLifespan = DEFAULT_JWK_SET_CACHE_LIFESPAN;
+    private Duration jwkSetCacheLifespan = Duration.ofMinutes(5);
 
     /**
      * The refresh time of the cached JWK set before it expires, default is 5 minutes.
      */
-    private long jwkSetCacheRefreshTime = DEFAULT_JWK_SET_CACHE_REFRESH_TIME;
+    private Duration jwkSetCacheRefreshTime = Duration.ofMinutes(5);
 
     /**
      * The redirect uri after logout.
@@ -118,7 +115,7 @@ public class AadAuthenticationProperties implements InitializingBean {
     /**
      * The OAuth2 authorization clients.
      */
-    private Map<String, AuthorizationClientProperties> authorizationClients = new HashMap<>();
+    private final Map<String, AuthorizationClientProperties> authorizationClients = new HashMap<>();
 
     /**
      * Type of the AAD application.
@@ -323,20 +320,11 @@ public class AadAuthenticationProperties implements InitializingBean {
     }
 
     /**
-     * Sets the additional authenticate parameters.
-     *
-     * @param authenticateAdditionalParameters the additional authenticate parameters
-     */
-    public void setAuthenticateAdditionalParameters(Map<String, Object> authenticateAdditionalParameters) {
-        this.authenticateAdditionalParameters = authenticateAdditionalParameters;
-    }
-
-    /**
      * Gets the JWT connect timeout.
      *
      * @return the JWT connect timeout
      */
-    public int getJwtConnectTimeout() {
+    public Duration getJwtConnectTimeout() {
         return jwtConnectTimeout;
     }
 
@@ -345,7 +333,7 @@ public class AadAuthenticationProperties implements InitializingBean {
      *
      * @param jwtConnectTimeout the JWT connect timeout
      */
-    public void setJwtConnectTimeout(int jwtConnectTimeout) {
+    public void setJwtConnectTimeout(Duration jwtConnectTimeout) {
         this.jwtConnectTimeout = jwtConnectTimeout;
     }
 
@@ -354,7 +342,7 @@ public class AadAuthenticationProperties implements InitializingBean {
      *
      * @return the JWT read timeout
      */
-    public int getJwtReadTimeout() {
+    public Duration getJwtReadTimeout() {
         return jwtReadTimeout;
     }
 
@@ -363,7 +351,7 @@ public class AadAuthenticationProperties implements InitializingBean {
      *
      * @param jwtReadTimeout the JWT read timeout
      */
-    public void setJwtReadTimeout(int jwtReadTimeout) {
+    public void setJwtReadTimeout(Duration jwtReadTimeout) {
         this.jwtReadTimeout = jwtReadTimeout;
     }
 
@@ -390,7 +378,7 @@ public class AadAuthenticationProperties implements InitializingBean {
      *
      * @return the JWK set cache lifespan
      */
-    public long getJwkSetCacheLifespan() {
+    public Duration getJwkSetCacheLifespan() {
         return jwkSetCacheLifespan;
     }
 
@@ -399,7 +387,7 @@ public class AadAuthenticationProperties implements InitializingBean {
      *
      * @param jwkSetCacheLifespan the JWT set cache lifespan
      */
-    public void setJwkSetCacheLifespan(long jwkSetCacheLifespan) {
+    public void setJwkSetCacheLifespan(Duration jwkSetCacheLifespan) {
         this.jwkSetCacheLifespan = jwkSetCacheLifespan;
     }
 
@@ -408,7 +396,7 @@ public class AadAuthenticationProperties implements InitializingBean {
      *
      * @return the JWK set cache refresh time
      */
-    public long getJwkSetCacheRefreshTime() {
+    public Duration getJwkSetCacheRefreshTime() {
         return jwkSetCacheRefreshTime;
     }
 
@@ -417,7 +405,7 @@ public class AadAuthenticationProperties implements InitializingBean {
      *
      * @param jwkSetCacheRefreshTime the JWK set cache refresh time
      */
-    public void setJwkSetCacheRefreshTime(long jwkSetCacheRefreshTime) {
+    public void setJwkSetCacheRefreshTime(Duration jwkSetCacheRefreshTime) {
         this.jwkSetCacheRefreshTime = jwkSetCacheRefreshTime;
     }
 
@@ -475,15 +463,6 @@ public class AadAuthenticationProperties implements InitializingBean {
      */
     public Map<String, AuthorizationClientProperties> getAuthorizationClients() {
         return authorizationClients;
-    }
-
-    /**
-     * Sets the authorization clients.
-     *
-     * @param authorizationClients the authorization clients
-     */
-    public void setAuthorizationClients(Map<String, AuthorizationClientProperties> authorizationClients) {
-        this.authorizationClients = authorizationClients;
     }
 
     /**
@@ -656,8 +635,8 @@ public class AadAuthenticationProperties implements InitializingBean {
                 "'spring.cloud.azure.active-directory.authorization-clients." + registrationId + ".scopes' must be configured");
         }
         // Add necessary scopes for authorization_code clients.
-        // https://docs.microsoft.com/en-us/graph/permissions-reference#remarks-17
-        // https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
+        // https://docs.microsoft.com/graph/permissions-reference#remarks-17
+        // https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
         if (properties.getAuthorizationGrantType().getValue().equals(AUTHORIZATION_CODE.getValue())) {
             if (!scopes.contains("openid")) {
                 scopes.add("openid"); // "openid" allows to request an ID token.

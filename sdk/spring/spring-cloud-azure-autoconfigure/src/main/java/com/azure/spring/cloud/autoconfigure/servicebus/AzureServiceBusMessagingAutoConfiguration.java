@@ -5,20 +5,25 @@ package com.azure.spring.cloud.autoconfigure.servicebus;
 
 import com.azure.spring.cloud.autoconfigure.condition.ConditionalOnAnyProperty;
 import com.azure.spring.cloud.autoconfigure.implementation.servicebus.properties.AzureServiceBusProperties;
+import com.azure.spring.cloud.core.provider.connectionstring.ServiceConnectionStringProvider;
+import com.azure.spring.cloud.core.service.AzureServiceType;
 import com.azure.spring.messaging.ConsumerIdentifier;
 import com.azure.spring.messaging.PropertiesSupplier;
+import com.azure.spring.messaging.servicebus.core.DefaultServiceBusNamespaceProcessorFactory;
+import com.azure.spring.messaging.servicebus.core.DefaultServiceBusNamespaceProducerFactory;
 import com.azure.spring.messaging.servicebus.core.ServiceBusProcessorFactory;
 import com.azure.spring.messaging.servicebus.core.ServiceBusProducerFactory;
 import com.azure.spring.messaging.servicebus.core.ServiceBusTemplate;
 import com.azure.spring.messaging.servicebus.core.properties.NamespaceProperties;
 import com.azure.spring.messaging.servicebus.core.properties.ProcessorProperties;
 import com.azure.spring.messaging.servicebus.core.properties.ProducerProperties;
-import com.azure.spring.messaging.servicebus.implementation.core.DefaultServiceBusNamespaceProcessorFactory;
-import com.azure.spring.messaging.servicebus.implementation.core.DefaultServiceBusNamespaceProducerFactory;
 import com.azure.spring.messaging.servicebus.support.converter.ServiceBusMessageConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -31,7 +36,9 @@ import static com.azure.spring.cloud.core.implementation.util.AzurePropertiesUti
 
 
 /**
- * An auto-configuration for Service Bus Queue.
+ * {@link EnableAutoConfiguration Auto-configuration} for Spring Messaging Azure Service Bus support.
+ *
+ * @since 4.0.0
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(ServiceBusTemplate.class)
@@ -45,12 +52,22 @@ import static com.azure.spring.cloud.core.implementation.util.AzurePropertiesUti
 })
 public class AzureServiceBusMessagingAutoConfiguration {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AzureServiceBusMessagingAutoConfiguration.class);
     @Bean
     @ConditionalOnMissingBean
-    NamespaceProperties serviceBusNamespaceProperties(AzureServiceBusProperties properties) {
+    NamespaceProperties serviceBusNamespaceProperties(AzureServiceBusProperties properties,
+                                                      ObjectProvider<ServiceConnectionStringProvider<AzureServiceType.ServiceBus>> connectionStringProviders) {
         NamespaceProperties namespaceProperties = new NamespaceProperties();
         BeanUtils.copyProperties(properties, namespaceProperties);
         copyAzureCommonProperties(properties, namespaceProperties);
+        if (namespaceProperties.getConnectionString() == null) {
+            ServiceConnectionStringProvider<AzureServiceType.ServiceBus> connectionStringProvider =
+                connectionStringProviders.getIfAvailable();
+            if (connectionStringProvider != null) {
+                namespaceProperties.setConnectionString(connectionStringProvider.getConnectionString());
+                LOGGER.info("Service Bus connection string is set from {} now.", connectionStringProvider.getClass().getName());
+            }
+        }
         return namespaceProperties;
     }
 
