@@ -18,6 +18,7 @@ import com.azure.spring.cloud.autoconfigure.aad.properties.AadAuthorizationServe
 import com.azure.spring.cloud.autoconfigure.aad.properties.AadProfileProperties;
 import com.nimbusds.jose.jwk.JWK;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -46,6 +47,7 @@ import org.springframework.web.client.RestTemplate;
 
 import static com.azure.spring.cloud.autoconfigure.aad.implementation.AadRestTemplateCreator.createOAuth2AccessTokenResponseClientRestTemplate;
 import static com.azure.spring.cloud.autoconfigure.aad.implementation.AadRestTemplateCreator.createRestTemplate;
+import static com.azure.spring.cloud.autoconfigure.context.AzureContextUtils.REST_TEMPLATE_BUILDER_BEAN_NAME;
 
 /**
  * <p>
@@ -63,7 +65,7 @@ public class AadOAuth2ClientConfiguration {
      *
      * @param restTemplateBuilder the RestTemplateBuilder
      */
-    public AadOAuth2ClientConfiguration(RestTemplateBuilder restTemplateBuilder) {
+    public AadOAuth2ClientConfiguration(@Qualifier(REST_TEMPLATE_BUILDER_BEAN_NAME) RestTemplateBuilder restTemplateBuilder) {
         this.restTemplateBuilder = restTemplateBuilder;
     }
 

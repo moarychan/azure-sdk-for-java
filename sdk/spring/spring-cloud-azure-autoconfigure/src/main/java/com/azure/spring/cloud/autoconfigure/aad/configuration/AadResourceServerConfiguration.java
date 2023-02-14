@@ -9,6 +9,7 @@ import com.azure.spring.cloud.autoconfigure.aad.implementation.constants.AadJwtC
 import com.azure.spring.cloud.autoconfigure.aad.implementation.webapi.validator.AadJwtIssuerValidator;
 import com.azure.spring.cloud.autoconfigure.aad.properties.AadAuthenticationProperties;
 import com.azure.spring.cloud.autoconfigure.aad.properties.AadAuthorizationServerEndpoints;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.azure.spring.cloud.autoconfigure.aad.implementation.AadRestTemplateCreator.createRestTemplate;
+import static com.azure.spring.cloud.autoconfigure.context.AzureContextUtils.REST_TEMPLATE_BUILDER_BEAN_NAME;
 
 /**
  * <p>
@@ -51,7 +53,7 @@ public class AadResourceServerConfiguration {
      *
      * @param restTemplateBuilder the RestTemplateBuilder
      */
-    public AadResourceServerConfiguration(RestTemplateBuilder restTemplateBuilder) {
+    public AadResourceServerConfiguration(@Qualifier(REST_TEMPLATE_BUILDER_BEAN_NAME) RestTemplateBuilder restTemplateBuilder) {
         this.restTemplateBuilder = restTemplateBuilder;
     }
 

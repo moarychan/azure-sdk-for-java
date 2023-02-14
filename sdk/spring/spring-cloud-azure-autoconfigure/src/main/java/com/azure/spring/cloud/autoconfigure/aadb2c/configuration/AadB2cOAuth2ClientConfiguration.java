@@ -9,6 +9,7 @@ import com.azure.spring.cloud.autoconfigure.aadb2c.properties.AadB2cProperties;
 import com.azure.spring.cloud.autoconfigure.aadb2c.properties.AuthorizationClientProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.azure.spring.cloud.autoconfigure.aad.implementation.AadRestTemplateCreator.createOAuth2AccessTokenResponseClientRestTemplate;
+import static com.azure.spring.cloud.autoconfigure.context.AzureContextUtils.REST_TEMPLATE_BUILDER_BEAN_NAME;
 
 /**
  * Configuration for AAD B2C OAuth2 client support, when depends on the Spring OAuth2 Client module.
@@ -61,7 +63,8 @@ public class AadB2cOAuth2ClientConfiguration {
      * @param properties the AAD B2C properties
      * @param restTemplateBuilder the restTemplateBuilder
      */
-    public AadB2cOAuth2ClientConfiguration(AadB2cProperties properties, RestTemplateBuilder restTemplateBuilder) {
+    public AadB2cOAuth2ClientConfiguration(AadB2cProperties properties,
+                                           @Qualifier(REST_TEMPLATE_BUILDER_BEAN_NAME) RestTemplateBuilder restTemplateBuilder) {
         this.properties = properties;
         this.restTemplateBuilder = restTemplateBuilder;
     }

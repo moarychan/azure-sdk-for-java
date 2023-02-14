@@ -16,6 +16,7 @@ import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import com.nimbusds.jwt.proc.JWTClaimsSetAwareJWSKeySelector;
 import com.nimbusds.jwt.proc.JWTProcessor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -37,6 +38,8 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.azure.spring.cloud.autoconfigure.context.AzureContextUtils.REST_TEMPLATE_BUILDER_BEAN_NAME;
+
 /**
  * Configure necessary beans for Azure AD B2C resource server beans, and import {@link AadB2cOAuth2ClientConfiguration} class for Azure AD
  * B2C OAuth2 client support.
@@ -57,7 +60,8 @@ public class AadB2cResourceServerAutoConfiguration {
      * @param properties the Azure AD B2C properties
      * @param restTemplateBuilder the restTemplateBuilder
      */
-    public AadB2cResourceServerAutoConfiguration(AadB2cProperties properties, RestTemplateBuilder restTemplateBuilder) {
+    public AadB2cResourceServerAutoConfiguration(AadB2cProperties properties,
+                                                 @Qualifier(REST_TEMPLATE_BUILDER_BEAN_NAME) RestTemplateBuilder restTemplateBuilder) {
         this.properties = properties;
         this.restTemplateBuilder = restTemplateBuilder;
     }

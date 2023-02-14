@@ -3,6 +3,7 @@
 package com.azure.spring.cloud.autoconfigure.aadb2c;
 
 import com.azure.spring.cloud.autoconfigure.aadb2c.implementation.AadB2cOAuth2AuthorizationCodeGrantRequestEntityConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -13,6 +14,7 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 import static com.azure.spring.cloud.autoconfigure.aad.implementation.AadRestTemplateCreator.createOAuth2AccessTokenResponseClientRestTemplate;
+import static com.azure.spring.cloud.autoconfigure.context.AzureContextUtils.REST_TEMPLATE_BUILDER_BEAN_NAME;
 
 /**
  * Configure B2C OAUTH2 login properties.
@@ -64,7 +66,7 @@ public class AadB2cOidcLoginConfigurer extends AbstractHttpConfigurer<AadB2cOidc
     public AadB2cOidcLoginConfigurer(LogoutSuccessHandler handler,
              OAuth2AuthorizationRequestResolver resolver,
              OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> accessTokenResponseClient,
-             RestTemplateBuilder restTemplateBuilder) {
+             @Qualifier(REST_TEMPLATE_BUILDER_BEAN_NAME) RestTemplateBuilder restTemplateBuilder) {
         this.handler = handler;
         this.resolver = resolver;
         this.accessTokenResponseClient = accessTokenResponseClient;

@@ -8,6 +8,7 @@ import com.azure.spring.cloud.autoconfigure.aadb2c.configuration.AadB2cPropertie
 import com.azure.spring.cloud.autoconfigure.aadb2c.implementation.AadB2cConditions;
 import com.azure.spring.cloud.autoconfigure.aadb2c.implementation.AadB2cOidcIdTokenDecoderFactory;
 import com.azure.spring.cloud.autoconfigure.aadb2c.properties.AadB2cProperties;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -24,6 +25,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
 import org.springframework.web.client.RestTemplate;
 
 import static com.azure.spring.cloud.autoconfigure.aad.implementation.AadRestTemplateCreator.createRestTemplate;
+import static com.azure.spring.cloud.autoconfigure.context.AzureContextUtils.REST_TEMPLATE_BUILDER_BEAN_NAME;
 
 /**
  * Configure the necessary beans for AAD B2C authentication and authorization,
@@ -43,7 +45,7 @@ public class AadB2cAutoConfiguration {
      *
      * @param restTemplateBuilder the RestTemplateBuilder
      */
-    public AadB2cAutoConfiguration(RestTemplateBuilder restTemplateBuilder) {
+    public AadB2cAutoConfiguration(@Qualifier(REST_TEMPLATE_BUILDER_BEAN_NAME) RestTemplateBuilder restTemplateBuilder) {
         this.restTemplateBuilder = restTemplateBuilder;
     }
 

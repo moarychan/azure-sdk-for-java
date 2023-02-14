@@ -15,6 +15,7 @@ import com.nimbusds.jose.jwk.source.JWKSetCache;
 import com.nimbusds.jose.util.ResourceRetriever;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -26,6 +27,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import java.util.concurrent.TimeUnit;
+
+import static com.azure.spring.cloud.autoconfigure.context.AzureContextUtils.REST_TEMPLATE_BUILDER_BEAN_NAME;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for Azure Active Authentication filters.
@@ -56,7 +59,7 @@ public class AadAuthenticationFilterAutoConfiguration {
      */
     public AadAuthenticationFilterAutoConfiguration(
             AadAuthenticationProperties properties,
-            RestTemplateBuilder restTemplateBuilder) {
+            @Qualifier(REST_TEMPLATE_BUILDER_BEAN_NAME) RestTemplateBuilder restTemplateBuilder) {
         this.properties = properties;
         this.restTemplateBuilder = restTemplateBuilder;
         this.endpoints = new AadAuthorizationServerEndpoints(

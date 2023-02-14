@@ -7,6 +7,7 @@ import com.azure.spring.cloud.autoconfigure.aad.AadWebSecurityConfigurerAdapter;
 import com.azure.spring.cloud.autoconfigure.aad.implementation.conditions.WebApplicationCondition;
 import com.azure.spring.cloud.autoconfigure.aad.implementation.webapp.AadOAuth2UserService;
 import com.azure.spring.cloud.autoconfigure.aad.properties.AadAuthenticationProperties;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -20,6 +21,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+
+import static com.azure.spring.cloud.autoconfigure.context.AzureContextUtils.REST_TEMPLATE_BUILDER_BEAN_NAME;
 
 /**
  * Configure the necessary beans used for Azure AD authentication and authorization.
@@ -36,7 +39,7 @@ public class AadWebApplicationConfiguration {
      * @param restTemplateBuilder the RestTemplateBuilder
      *
      */
-    public AadWebApplicationConfiguration(RestTemplateBuilder restTemplateBuilder) {
+    public AadWebApplicationConfiguration(@Qualifier(REST_TEMPLATE_BUILDER_BEAN_NAME) RestTemplateBuilder restTemplateBuilder) {
         this.restTemplateBuilder = restTemplateBuilder;
     }
 

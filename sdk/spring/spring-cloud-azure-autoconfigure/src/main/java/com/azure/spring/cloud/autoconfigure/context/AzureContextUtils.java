@@ -93,4 +93,7 @@ public abstract class AzureContextUtils {
      */
     public static final String PASSWORDLESS_KAFKA_PROPERTIES_BEAN_POST_PROCESSOR_BEAN_NAME =
         "azurePasswordlessKafkaPropertiesBeanPostProcessor";
+
+    public static final String REST_TEMPLATE_BUILDER_BEAN_NAME = "springCloudAzureRestTemplateBuilder";
+    public static final String REST_TEMPLATE_CONFIGURER_BEAN_NAME = "springCloudAzureRestTemplateConfigurer";
 }
