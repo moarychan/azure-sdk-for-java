@@ -58,13 +58,17 @@ public class AzureAuthenticationTemplate {
             LOGGER.verbose("Initializing AzureAuthenticationTemplate.");
 
             if (getTokenCredentialProvider() == null) {
+                LOGGER.verbose("getTokenCredentialProvider is null, create default credential provider.");
                 this.tokenCredentialProvider = TokenCredentialProvider.createDefault(
                     new TokenCredentialProviderOptions(properties));
+                LOGGER.verbose("getTokenCredentialProvider class - {}", this.tokenCredentialProvider.getClass());
             }
 
             if (getAccessTokenResolver() == null) {
+                LOGGER.verbose("getAccessTokenResolver is null, create default token resolver.");
                 this.accessTokenResolver = AccessTokenResolver.createDefault(
                     new AccessTokenResolverOptions(properties));
+                LOGGER.verbose("getAccessTokenResolver class - {}", this.accessTokenResolver.getClass());
             }
 
             LOGGER.verbose("Initialized AzureAuthenticationTemplate.");
@@ -107,11 +111,16 @@ public class AzureAuthenticationTemplate {
     }
 
     TokenCredentialProvider getTokenCredentialProvider() {
+        if (tokenCredentialProvider != null) {
+            LOGGER.verbose("tokenCredentialProvider class name - {}.", tokenCredentialProvider.getClass());
+        } else {
+            LOGGER.verbose("tokenCredentialProvider class name is not set yet.");
+        }
         return tokenCredentialProvider;
     }
 
     Duration getBlockTimeout() {
-        return Duration.ofSeconds(30);
+        return Duration.ofSeconds(30 * 4);
     }
 
     AtomicBoolean getIsInitialized() {

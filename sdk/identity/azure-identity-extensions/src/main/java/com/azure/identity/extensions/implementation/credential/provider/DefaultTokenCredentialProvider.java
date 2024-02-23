@@ -4,6 +4,7 @@
 package com.azure.identity.extensions.implementation.credential.provider;
 
 import com.azure.core.credential.TokenCredential;
+import com.azure.core.util.logging.ClientLogger;
 import com.azure.identity.ClientCertificateCredentialBuilder;
 import com.azure.identity.ClientSecretCredentialBuilder;
 import com.azure.identity.DefaultAzureCredentialBuilder;
@@ -16,6 +17,8 @@ import reactor.util.annotation.Nullable;
  * Default tokenCredentialProvider implementation that provides tokenCredential instance.
  */
 public class DefaultTokenCredentialProvider implements TokenCredentialProvider {
+
+    private static final ClientLogger LOGGER = new ClientLogger(DefaultTokenCredentialProvider.class);
 
     private final TokenCredentialProviderOptions options;
 
@@ -33,6 +36,7 @@ public class DefaultTokenCredentialProvider implements TokenCredentialProvider {
 
     @Override
     public TokenCredential get() {
+        LOGGER.verbose("tokenCredential class name - {}", tokenCredential.getClass());
         return tokenCredential;
     }
 
@@ -94,6 +98,7 @@ public class DefaultTokenCredentialProvider implements TokenCredentialProvider {
             return builder.build();
         }
 
+        LOGGER.verbose("Use the dac builder.");
         return new DefaultAzureCredentialBuilder()
                 .authorityHost(authorityHost)
                 .tenantId(tenantId)

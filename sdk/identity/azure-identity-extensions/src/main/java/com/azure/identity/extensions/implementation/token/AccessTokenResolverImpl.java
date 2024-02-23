@@ -6,6 +6,7 @@ package com.azure.identity.extensions.implementation.token;
 import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
+import com.azure.core.util.logging.ClientLogger;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
@@ -15,6 +16,8 @@ import java.util.Objects;
  * and outputs a publisher that emits a single access token.
  */
 public class AccessTokenResolverImpl implements AccessTokenResolver {
+
+    private static final ClientLogger LOGGER = new ClientLogger(AccessTokenResolverImpl.class);
 
     private final AccessTokenResolverOptions options;
 
@@ -38,6 +41,7 @@ public class AccessTokenResolverImpl implements AccessTokenResolver {
         request.setTenantId(this.options.getTenantId());
         request.setClaims(this.options.getClaims());
         request.addScopes(this.options.getScopes());
+        LOGGER.verbose("Start to get token from credential class - (), {}.", tokenCredential, tokenCredential.getClass());
         return tokenCredential.getToken(request);
     }
 }

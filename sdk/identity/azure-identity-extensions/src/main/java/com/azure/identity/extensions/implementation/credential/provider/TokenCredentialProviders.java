@@ -3,8 +3,9 @@
 
 package com.azure.identity.extensions.implementation.credential.provider;
 
-import com.azure.identity.extensions.implementation.utils.ClassUtil;
+import com.azure.core.util.logging.ClientLogger;
 import com.azure.identity.extensions.implementation.credential.TokenCredentialProviderOptions;
+import com.azure.identity.extensions.implementation.utils.ClassUtil;
 
 import static com.azure.identity.extensions.implementation.utils.ClassUtil.instantiateClass;
 
@@ -12,6 +13,8 @@ import static com.azure.identity.extensions.implementation.utils.ClassUtil.insta
  * Util class to provide TokenCredentialProvider.
  */
 public final class TokenCredentialProviders {
+
+    private static final ClientLogger LOGGER = new ClientLogger(TokenCredentialProviders.class);
 
     private static Class<? extends TokenCredentialProvider> defaultProviderClass = DefaultTokenCredentialProvider.class;
 
@@ -40,6 +43,7 @@ public final class TokenCredentialProviders {
             clazz = defaultProviderClass;
         }
 
+        LOGGER.verbose("Create credential class is {}", clazz);
         return instantiateClass(clazz, options);
     }
 

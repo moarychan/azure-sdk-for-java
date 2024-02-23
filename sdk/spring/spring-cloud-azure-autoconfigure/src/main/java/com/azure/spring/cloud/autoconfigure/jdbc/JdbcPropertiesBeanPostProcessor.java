@@ -10,6 +10,7 @@ import com.azure.spring.cloud.autoconfigure.context.AzureGlobalProperties;
 import com.azure.spring.cloud.autoconfigure.implementation.jdbc.DatabaseType;
 import com.azure.spring.cloud.autoconfigure.implementation.jdbc.JdbcConnectionString;
 import com.azure.spring.cloud.autoconfigure.implementation.jdbc.JdbcConnectionStringEnhancer;
+import com.azure.spring.cloud.core.implementation.properties.AzurePasswordlessPropertiesMapping;
 import com.azure.spring.cloud.core.implementation.util.AzurePasswordlessPropertiesUtils;
 import com.azure.spring.cloud.core.implementation.util.AzureSpringIdentifier;
 import com.azure.spring.cloud.service.implementation.identity.credential.provider.SpringTokenCredentialProvider;
@@ -131,8 +132,18 @@ class JdbcPropertiesBeanPostProcessor implements BeanPostProcessor, EnvironmentA
 
     private Map<String, String> buildEnhancedProperties(DatabaseType databaseType, AzureJdbcPasswordlessProperties properties) {
         Map<String, String> result = new HashMap<>();
-        TokenCredentialProvider tokenCredentialProvider = TokenCredentialProvider.createDefault(new TokenCredentialProviderOptions(properties.toPasswordlessProperties()));
+        for (AzurePasswordlessPropertiesMapping m : AzurePasswordlessPropertiesMapping.values()) {
+            LOGGER.debug("PropertiesMapping - {}", m.name() + " -> " + m.getGetter().apply(properties));
+        }
+
+        TokenCredentialProviderOptions providerOptions = new TokenCredentialProviderOptions(properties.toPasswordlessProperties());
+
+        LOGGER.debug("TokenCredentialProviderOptions - {}", providerOptions.getClientId() + "," + providerOptions.getTenantId() + ", " + providerOptions.isManagedIdentityEnabled() + ", " + providerOptions.getTokenCredentialProviderClassName());
+        TokenCredentialProvider tokenCredentialProvider = TokenCredentialProvider.createDefault(providerOptions);
+
         TokenCredential tokenCredential = tokenCredentialProvider.get();
+
+        LOGGER.debug("token credential class {}, {}", tokenCredential, tokenCredential.getClass().getSimpleName());
 
         AuthProperty.TOKEN_CREDENTIAL_BEAN_NAME.setProperty(result, PASSWORDLESS_TOKEN_CREDENTIAL_BEAN_NAME);
         applicationContext.registerBean(PASSWORDLESS_TOKEN_CREDENTIAL_BEAN_NAME, TokenCredential.class, () -> tokenCredential);

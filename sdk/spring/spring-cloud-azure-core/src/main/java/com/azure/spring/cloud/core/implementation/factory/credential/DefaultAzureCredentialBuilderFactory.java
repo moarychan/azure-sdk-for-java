@@ -7,6 +7,8 @@ import com.azure.identity.DefaultAzureCredentialBuilder;
 import com.azure.spring.cloud.core.implementation.properties.PropertyMapper;
 import com.azure.spring.cloud.core.properties.AzureProperties;
 import com.azure.spring.cloud.core.provider.AzureProfileOptionsProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutorService;
 
@@ -15,6 +17,7 @@ import java.util.concurrent.ExecutorService;
  */
 public class DefaultAzureCredentialBuilderFactory extends AbstractAzureCredentialBuilderFactory<DefaultAzureCredentialBuilder> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultAzureCredentialBuilderFactory.class);
     private ExecutorService executorService = null;
 
     /**
@@ -41,6 +44,7 @@ public class DefaultAzureCredentialBuilderFactory extends AbstractAzureCredentia
               .when(p -> azureProperties.getCredential().isManagedIdentityEnabled())
               .to(builder::managedIdentityClientId);
         mapper.from(executorService).to(builder::executorService);
+        LOGGER.debug("**** Build DAC credential");
     }
 
     /**

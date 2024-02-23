@@ -11,6 +11,7 @@ import com.azure.identity.DefaultAzureCredentialBuilder;
 import com.azure.identity.ManagedIdentityCredentialBuilder;
 import com.azure.identity.UsernamePasswordCredentialBuilder;
 import com.azure.spring.cloud.autoconfigure.AzureServiceConfigurationBase;
+import com.azure.spring.cloud.autoconfigure.implementation.compatibility.AzureSpringBootVersionVerifier;
 import com.azure.spring.cloud.autoconfigure.implementation.properties.core.AbstractAzureHttpConfigurationProperties;
 import com.azure.spring.cloud.core.customizer.AzureServiceClientBuilderCustomizer;
 import com.azure.spring.cloud.core.implementation.credential.resolver.AzureTokenCredentialResolver;
@@ -22,6 +23,8 @@ import com.azure.spring.cloud.core.implementation.factory.credential.DefaultAzur
 import com.azure.spring.cloud.core.implementation.factory.credential.ManagedIdentityCredentialBuilderFactory;
 import com.azure.spring.cloud.core.implementation.factory.credential.UsernamePasswordCredentialBuilderFactory;
 import com.azure.spring.cloud.core.provider.authentication.TokenCredentialOptionsProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -52,6 +55,8 @@ import static com.azure.spring.cloud.autoconfigure.context.AzureContextUtils.DEF
 @AutoConfigureAfter(TaskExecutionAutoConfiguration.class)
 public class AzureTokenCredentialAutoConfiguration extends AzureServiceConfigurationBase {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AzureTokenCredentialAutoConfiguration.class);
+
     private final IdentityClientProperties identityClientProperties;
 
     AzureTokenCredentialAutoConfiguration(AzureGlobalProperties azureGlobalProperties) {
@@ -65,9 +70,11 @@ public class AzureTokenCredentialAutoConfiguration extends AzureServiceConfigura
     TokenCredential tokenCredential(DefaultAzureCredentialBuilderFactory factory,
                                     AzureTokenCredentialResolver resolver) {
         TokenCredential globalTokenCredential = resolver.resolve(this.identityClientProperties);
+        LOGGER.debug("Global token credential is null ? - {}", globalTokenCredential == null);
         if (globalTokenCredential != null) {
             return globalTokenCredential;
         } else {
+            LOGGER.debug("Use Spring DAC.");
             return factory.build().build();
         }
     }

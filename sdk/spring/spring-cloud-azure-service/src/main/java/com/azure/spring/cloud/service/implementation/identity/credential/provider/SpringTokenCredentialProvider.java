@@ -6,6 +6,8 @@ package com.azure.spring.cloud.service.implementation.identity.credential.provid
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.extensions.implementation.credential.TokenCredentialProviderOptions;
 import com.azure.identity.extensions.implementation.credential.provider.TokenCredentialProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -17,6 +19,8 @@ import java.util.Objects;
  */
 public class SpringTokenCredentialProvider implements TokenCredentialProvider, ApplicationContextAware {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SpringTokenCredentialProvider.class);
+
     public static final String DEFAULT_TOKEN_CREDENTIAL_BEAN_NAME = "springCloudAzureDefaultCredential";
     public static final String PASSWORDLESS_TOKEN_CREDENTIAL_BEAN_NAME = "passwordlessTokenCredential";
     private static ApplicationContext globalApplicationContext;
@@ -26,6 +30,7 @@ public class SpringTokenCredentialProvider implements TokenCredentialProvider, A
     public SpringTokenCredentialProvider(TokenCredentialProviderOptions options) {
         String beanName = options == null ? null : options.getTokenCredentialBeanName();
         if (beanName != null && !beanName.isEmpty()) {
+            LOGGER.debug("Token credential bean name: {}", beanName);
             this.tokenCredentialBeanName = beanName;
         }
     }
@@ -33,7 +38,7 @@ public class SpringTokenCredentialProvider implements TokenCredentialProvider, A
     public TokenCredential get() {
         ApplicationContext context = getApplicationContext();
         Objects.requireNonNull(context);
-
+        LOGGER.debug("Get bean credential bean: {}", tokenCredentialBeanName);
         return context.getBean(this.tokenCredentialBeanName, TokenCredential.class);
     }
 

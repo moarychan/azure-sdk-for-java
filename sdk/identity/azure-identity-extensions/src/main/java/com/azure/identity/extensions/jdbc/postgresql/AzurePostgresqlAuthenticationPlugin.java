@@ -3,6 +3,7 @@
 
 package com.azure.identity.extensions.jdbc.postgresql;
 
+import com.azure.core.util.logging.ClientLogger;
 import com.azure.identity.extensions.implementation.template.AzureAuthenticationTemplate;
 import org.postgresql.plugin.AuthenticationPlugin;
 import org.postgresql.plugin.AuthenticationRequestType;
@@ -17,6 +18,8 @@ import static org.postgresql.util.PSQLState.INVALID_PASSWORD;
  */
 public class AzurePostgresqlAuthenticationPlugin implements AuthenticationPlugin {
 
+    private static final ClientLogger LOGGER = new ClientLogger(AzurePostgresqlAuthenticationPlugin.class);
+
     private final AzureAuthenticationTemplate azureAuthenticationTemplate;
 
     /**
@@ -26,9 +29,10 @@ public class AzurePostgresqlAuthenticationPlugin implements AuthenticationPlugin
      */
     public AzurePostgresqlAuthenticationPlugin(Properties properties) {
         this(new AzureAuthenticationTemplate(), properties);
+        LOGGER.verbose("AzurePostgresqlAuthenticationPlugin initialized.");
     }
 
-    AzurePostgresqlAuthenticationPlugin(AzureAuthenticationTemplate azureAuthenticationTemplate, Properties properties) {
+    public AzurePostgresqlAuthenticationPlugin(AzureAuthenticationTemplate azureAuthenticationTemplate, Properties properties) {
         this.azureAuthenticationTemplate = azureAuthenticationTemplate;
         this.azureAuthenticationTemplate.init(properties);
     }
@@ -51,6 +55,7 @@ public class AzurePostgresqlAuthenticationPlugin implements AuthenticationPlugin
      */
     @Override
     public char[] getPassword(AuthenticationRequestType type) throws PSQLException {
+        LOGGER.verbose("AzurePostgresqlAuthenticationPlugin getPassword.");
         String password = azureAuthenticationTemplate.getTokenAsPassword();
         if (password != null) {
             return password.toCharArray();
