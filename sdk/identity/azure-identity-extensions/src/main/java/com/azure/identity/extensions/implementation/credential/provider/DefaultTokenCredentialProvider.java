@@ -27,11 +27,13 @@ public class DefaultTokenCredentialProvider implements TokenCredentialProvider {
     DefaultTokenCredentialProvider() {
         this.options = new TokenCredentialProviderOptions();
         this.tokenCredential = get(this.options);
+        LOGGER.verbose("DefaultTokenCredentialProvider 1 create token credential. - {}, {}", this.tokenCredential, this.tokenCredential.getClass());
     }
 
     DefaultTokenCredentialProvider(TokenCredentialProviderOptions options) {
         this.options = options;
         this.tokenCredential = get(this.options);
+        LOGGER.verbose("DefaultTokenCredentialProvider 2 create token credential. - {}, {}", this.tokenCredential, this.tokenCredential.getClass());
     }
 
     @Override
@@ -43,6 +45,7 @@ public class DefaultTokenCredentialProvider implements TokenCredentialProvider {
     @Override
     public TokenCredential get(TokenCredentialProviderOptions options) {
         if (options == null) {
+            LOGGER.verbose("options is null, create dac builder to build token credential.");
             return new DefaultAzureCredentialBuilder().build();
         }
         return resolveTokenCredential(options);

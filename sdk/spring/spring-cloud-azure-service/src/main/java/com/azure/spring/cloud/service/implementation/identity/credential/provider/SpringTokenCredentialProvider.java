@@ -33,13 +33,16 @@ public class SpringTokenCredentialProvider implements TokenCredentialProvider, A
             LOGGER.debug("Token credential bean name: {}", beanName);
             this.tokenCredentialBeanName = beanName;
         }
+        LOGGER.debug("SpringTokenCredentialProvider initialized. - {}", this.tokenCredentialBeanName);
     }
 
     public TokenCredential get() {
         ApplicationContext context = getApplicationContext();
         Objects.requireNonNull(context);
         LOGGER.debug("Get bean credential bean: {}", tokenCredentialBeanName);
-        return context.getBean(this.tokenCredentialBeanName, TokenCredential.class);
+        TokenCredential tokenCredential = context.getBean(this.tokenCredentialBeanName, TokenCredential.class);
+        LOGGER.debug("SpringTokenCredentialProvider get token credential. - {}, {}", tokenCredential, tokenCredential.getClass());
+        return tokenCredential;
     }
 
     @Override
@@ -49,6 +52,7 @@ public class SpringTokenCredentialProvider implements TokenCredentialProvider, A
 
     public static void setGlobalApplicationContext(ApplicationContext applicationContext) {
         globalApplicationContext = applicationContext;
+        LOGGER.debug("Set global application context.");
     }
 
     private ApplicationContext getApplicationContext() {

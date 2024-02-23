@@ -41,7 +41,7 @@ public class AccessTokenResolverImpl implements AccessTokenResolver {
         request.setTenantId(this.options.getTenantId());
         request.setClaims(this.options.getClaims());
         request.addScopes(this.options.getScopes());
-        LOGGER.verbose("Start to get token from credential class - (), {}.", tokenCredential, tokenCredential.getClass());
+        LOGGER.verbose("Start to get token from credential class - {}, {}.", tokenCredential, tokenCredential.getClass());
         return tokenCredential.getToken(request);
     }
 }

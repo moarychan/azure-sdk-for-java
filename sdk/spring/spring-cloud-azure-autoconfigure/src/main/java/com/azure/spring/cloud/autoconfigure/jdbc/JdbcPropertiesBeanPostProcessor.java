@@ -136,14 +136,15 @@ class JdbcPropertiesBeanPostProcessor implements BeanPostProcessor, EnvironmentA
             LOGGER.debug("PropertiesMapping - {}", m.name() + " -> " + m.getGetter().apply(properties));
         }
 
-        TokenCredentialProviderOptions providerOptions = new TokenCredentialProviderOptions(properties.toPasswordlessProperties());
+            TokenCredentialProviderOptions providerOptions = new TokenCredentialProviderOptions(properties.toPasswordlessProperties());
 
-        LOGGER.debug("TokenCredentialProviderOptions - {}", providerOptions.getClientId() + "," + providerOptions.getTenantId() + ", " + providerOptions.isManagedIdentityEnabled() + ", " + providerOptions.getTokenCredentialProviderClassName());
+        LOGGER.debug("TokenCredentialProviderOptions - {}", providerOptions.getClientId() + "," +
+            providerOptions.getTenantId() + ", " + providerOptions.isManagedIdentityEnabled() + ", " + providerOptions.getTokenCredentialProviderClassName());
         TokenCredentialProvider tokenCredentialProvider = TokenCredentialProvider.createDefault(providerOptions);
 
         TokenCredential tokenCredential = tokenCredentialProvider.get();
 
-        LOGGER.debug("token credential class {}, {}", tokenCredential, tokenCredential.getClass().getSimpleName());
+        LOGGER.debug("processor token credential class {}, {}", tokenCredential, tokenCredential.getClass().getSimpleName());
 
         AuthProperty.TOKEN_CREDENTIAL_BEAN_NAME.setProperty(result, PASSWORDLESS_TOKEN_CREDENTIAL_BEAN_NAME);
         applicationContext.registerBean(PASSWORDLESS_TOKEN_CREDENTIAL_BEAN_NAME, TokenCredential.class, () -> tokenCredential);

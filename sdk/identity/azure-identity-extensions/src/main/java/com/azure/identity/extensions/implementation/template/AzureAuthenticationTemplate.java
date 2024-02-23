@@ -11,6 +11,7 @@ import com.azure.identity.extensions.implementation.token.AccessTokenResolver;
 import com.azure.identity.extensions.implementation.token.AccessTokenResolverOptions;
 import reactor.core.publisher.Mono;
 import java.time.Duration;
+import java.util.Enumeration;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -58,17 +59,22 @@ public class AzureAuthenticationTemplate {
             LOGGER.verbose("Initializing AzureAuthenticationTemplate.");
 
             if (getTokenCredentialProvider() == null) {
-                LOGGER.verbose("getTokenCredentialProvider is null, create default credential provider.");
+                LOGGER.verbose("getTokenCredentialProvider is null, create default credential provider. Will create a default one");
+                Enumeration<?> enumeration = properties.propertyNames();
+                while(enumeration.hasMoreElements()) {
+                    Object key = enumeration.nextElement();
+                    LOGGER.verbose("Create TokenCredentialProvider props - {}, {}", key, properties.get(key));
+                }
                 this.tokenCredentialProvider = TokenCredentialProvider.createDefault(
                     new TokenCredentialProviderOptions(properties));
-                LOGGER.verbose("getTokenCredentialProvider class - {}", this.tokenCredentialProvider.getClass());
+                LOGGER.verbose("Default TokenCredentialProvider created - {}, {}", this.tokenCredentialProvider, this.tokenCredentialProvider.getClass());
             }
 
             if (getAccessTokenResolver() == null) {
                 LOGGER.verbose("getAccessTokenResolver is null, create default token resolver.");
                 this.accessTokenResolver = AccessTokenResolver.createDefault(
                     new AccessTokenResolverOptions(properties));
-                LOGGER.verbose("getAccessTokenResolver class - {}", this.accessTokenResolver.getClass());
+                LOGGER.verbose("getAccessTokenResolver class - {}, {}", this.accessTokenResolver, this.accessTokenResolver.getClass());
             }
 
             LOGGER.verbose("Initialized AzureAuthenticationTemplate.");
