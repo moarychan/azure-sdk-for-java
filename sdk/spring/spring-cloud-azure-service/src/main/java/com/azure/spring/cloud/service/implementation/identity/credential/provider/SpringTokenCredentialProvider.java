@@ -29,11 +29,11 @@ public class SpringTokenCredentialProvider implements TokenCredentialProvider, A
 
     public SpringTokenCredentialProvider(TokenCredentialProviderOptions options) {
         String beanName = options == null ? null : options.getTokenCredentialBeanName();
+        LOGGER.debug("SpringTokenCredentialProvider initialized. - {}, {}", beanName, this.tokenCredentialBeanName);
         if (beanName != null && !beanName.isEmpty()) {
             LOGGER.debug("Token credential bean name: {}", beanName);
             this.tokenCredentialBeanName = beanName;
         }
-        LOGGER.debug("SpringTokenCredentialProvider initialized. - {}", this.tokenCredentialBeanName);
     }
 
     public TokenCredential get() {

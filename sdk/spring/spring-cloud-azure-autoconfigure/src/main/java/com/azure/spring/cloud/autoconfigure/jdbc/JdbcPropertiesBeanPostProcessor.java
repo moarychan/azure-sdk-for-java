@@ -2,7 +2,9 @@
 // Licensed under the MIT License.
 package com.azure.spring.cloud.autoconfigure.jdbc;
 
+import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenCredential;
+import com.azure.core.credential.TokenRequestContext;
 import com.azure.identity.extensions.implementation.credential.TokenCredentialProviderOptions;
 import com.azure.identity.extensions.implementation.credential.provider.TokenCredentialProvider;
 import com.azure.identity.extensions.implementation.enums.AuthProperty;
@@ -27,7 +29,9 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
+import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -145,6 +149,14 @@ class JdbcPropertiesBeanPostProcessor implements BeanPostProcessor, EnvironmentA
         TokenCredential tokenCredential = tokenCredentialProvider.get();
 
         LOGGER.debug("processor token credential class {}, {}", tokenCredential, tokenCredential.getClass().getSimpleName());
+
+        try {
+            TokenRequestContext request = new TokenRequestContext().addScopes("https://management.azure.com");
+            AccessToken accessToken = tokenCredential.getToken(request).block(Duration.ofMinutes(3));
+            LOGGER.debug("Got first token: {}", accessToken != null && StringUtils.hasText(accessToken.getToken()));
+        } catch (Exception e) {
+            LOGGER.error("First getting token", e);
+        }
 
         AuthProperty.TOKEN_CREDENTIAL_BEAN_NAME.setProperty(result, PASSWORDLESS_TOKEN_CREDENTIAL_BEAN_NAME);
         applicationContext.registerBean(PASSWORDLESS_TOKEN_CREDENTIAL_BEAN_NAME, TokenCredential.class, () -> tokenCredential);
