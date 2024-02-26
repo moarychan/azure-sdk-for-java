@@ -34,6 +34,7 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static com.azure.spring.cloud.autoconfigure.implementation.jdbc.JdbcPropertyConstants.MYSQL_PROPERTY_CONNECTION_ATTRIBUTES_ATTRIBUTE_EXTENSION_VERSION;
 import static com.azure.spring.cloud.autoconfigure.implementation.jdbc.JdbcPropertyConstants.MYSQL_PROPERTY_CONNECTION_ATTRIBUTES_DELIMITER;
@@ -140,7 +141,7 @@ class JdbcPropertiesBeanPostProcessor implements BeanPostProcessor, EnvironmentA
             LOGGER.debug("PropertiesMapping - {}", m.name() + " -> " + m.getGetter().apply(properties));
         }
 
-            TokenCredentialProviderOptions providerOptions = new TokenCredentialProviderOptions(properties.toPasswordlessProperties());
+        TokenCredentialProviderOptions providerOptions = new TokenCredentialProviderOptions(properties.toPasswordlessProperties());
 
         LOGGER.debug("TokenCredentialProviderOptions - {}", providerOptions.getClientId() + "," +
             providerOptions.getTenantId() + ", " + providerOptions.isManagedIdentityEnabled() + ", " + providerOptions.getTokenCredentialProviderClassName());
@@ -150,12 +151,26 @@ class JdbcPropertiesBeanPostProcessor implements BeanPostProcessor, EnvironmentA
 
         LOGGER.debug("processor token credential class {}, {}", tokenCredential, tokenCredential.getClass().getSimpleName());
 
+        int count = 20;
+        while (count > 0) {
+            count--;
+            LOGGER.debug("Sleeping 3 seconds.");
+            try {
+                TimeUnit.SECONDS.sleep(3);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
         try {
             TokenRequestContext request = new TokenRequestContext().addScopes("https://management.azure.com");
+            LOGGER.debug("First token");
             AccessToken accessToken = tokenCredential.getToken(request).block(Duration.ofMinutes(3));
             LOGGER.debug("Got first token: {}", accessToken != null && StringUtils.hasText(accessToken.getToken()));
         } catch (Exception e) {
-            LOGGER.error("First getting token", e);
+            LOGGER.error("First getting token error", e);
+        } finally {
+            LOGGER.error("End the first getting token");
         }
 
         AuthProperty.TOKEN_CREDENTIAL_BEAN_NAME.setProperty(result, PASSWORDLESS_TOKEN_CREDENTIAL_BEAN_NAME);

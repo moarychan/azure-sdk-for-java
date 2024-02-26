@@ -13,6 +13,10 @@ import com.azure.identity.UsernamePasswordCredentialBuilder;
 import com.azure.identity.extensions.implementation.credential.TokenCredentialProviderOptions;
 import reactor.util.annotation.Nullable;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+
 /**
  * Default tokenCredentialProvider implementation that provides tokenCredential instance.
  */
@@ -102,10 +106,21 @@ public class DefaultTokenCredentialProvider implements TokenCredentialProvider {
         }
 
         LOGGER.verbose("Use the dac builder.");
+        ExecutorService executorService = Executors.newFixedThreadPool(1, new ThreadFactory() {
+
+            private int count = 0;
+
+            @Override
+            public Thread newThread(Runnable runnable) {
+                return new Thread(runnable, "az-id-test-" + count++);
+            }
+        });
+
         return new DefaultAzureCredentialBuilder()
                 .authorityHost(authorityHost)
                 .tenantId(tenantId)
                 .managedIdentityClientId(clientId)
+                .executorService(executorService)
                 .build();
     }
 
