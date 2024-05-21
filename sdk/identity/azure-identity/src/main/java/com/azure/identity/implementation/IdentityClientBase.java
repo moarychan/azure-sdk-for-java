@@ -421,6 +421,7 @@ public abstract class IdentityClientBase {
             throw LOGGER.logExceptionAsWarning(new IllegalStateException(e));
         }
 
+        LOGGER.log(LogLevel.VERBOSE, () -> "wi-check set appTokenProvider 1");
         applicationBuilder.appTokenProvider(getWorkloadIdentityTokenProvider());
 
 
@@ -585,7 +586,7 @@ public abstract class IdentityClientBase {
                 }
             }
 
-            LOGGER.verbose("Azure CLI Authentication => A token response was received from Azure CLI, deserializing the"
+            log("Azure CLI Authentication => A token response was received from Azure CLI, deserializing the"
                 + " response into an Access Token.");
             Map<String, String> objectMap = SERIALIZER_ADAPTER.deserialize(processOutput, Map.class,
                 SerializerEncoding.JSON);
@@ -709,6 +710,9 @@ public abstract class IdentityClientBase {
     }
 
     AccessToken authenticateWithExchangeTokenHelper(TokenRequestContext request, String assertionToken) throws IOException {
+        log("wi check start authenticateWithExchangeTokenHelper");
+        log("wi check start authenticateWithExchangeTokenHelper params: " + tenantId);
+
         String authorityUrl = TRAILING_FORWARD_SLASHES.matcher(options.getAuthorityHost()).replaceAll("")
             + "/" + tenantId + "/oauth2/v2.0/token";
 
@@ -718,6 +722,8 @@ public abstract class IdentityClientBase {
 
         byte[] postData = urlParams.getBytes(StandardCharsets.UTF_8);
         int postDataLength = postData.length;
+
+        log("wi check token url " + authorityUrl + "," + urlParams);
 
         HttpURLConnection connection = null;
 
@@ -730,6 +736,7 @@ public abstract class IdentityClientBase {
             connection.setRequestProperty("Content-Length", Integer.toString(postDataLength));
             connection.setRequestProperty("User-Agent", userAgent);
             connection.setDoOutput(true);
+            log("wi check acquire token");
             try (DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream())) {
                 outputStream.write(postData);
             }
@@ -742,6 +749,11 @@ public abstract class IdentityClientBase {
                 connection.disconnect();
             }
         }
+    }
+
+    private void log(String msg) {
+        LOGGER.verbose(msg);
+        System.out.println(msg);
     }
 
     String getSafeWorkingDirectory() {

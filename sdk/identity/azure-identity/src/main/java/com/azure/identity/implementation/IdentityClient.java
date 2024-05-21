@@ -953,9 +953,12 @@ public class IdentityClient extends IdentityClientBase {
      * @return a Publisher that emits an AccessToken
      */
     public Mono<AccessToken> authenticateWithExchangeToken(TokenRequestContext request) {
-
+        LOGGER.verbose("wi check exec authenticateWithExchangeToken");
         return clientAssertionAccessor.getValue()
-            .flatMap(assertionToken -> Mono.fromCallable(() -> authenticateWithExchangeTokenHelper(request, assertionToken)));
+            .flatMap(assertionToken -> Mono.fromCallable(() -> {
+                LOGGER.verbose("wi check exec from callable, assertionToken: " + assertionToken);
+                return authenticateWithExchangeTokenHelper(request, assertionToken);
+            }));
     }
 
     /**
@@ -1289,14 +1292,17 @@ public class IdentityClient extends IdentityClientBase {
 
     Function<AppTokenProviderParameters, CompletableFuture<TokenProviderResult>> getWorkloadIdentityTokenProvider() {
         return appTokenProviderParameters -> {
+            LOGGER.verbose("wi check exec appTokenProvider");
             TokenRequestContext trc = new TokenRequestContext()
                 .setScopes(new ArrayList<>(appTokenProviderParameters.scopes))
                 .setClaims(appTokenProviderParameters.claims)
                 .setTenantId(appTokenProviderParameters.tenantId);
 
+            LOGGER.verbose("wi check authenticateWithExchangeTokenSync");
             Mono<AccessToken> accessTokenAsync = authenticateWithExchangeToken(trc);
-
+            LOGGER.verbose("wi check return mono token");
             return accessTokenAsync.map(accessToken -> {
+                LOGGER.verbose("wi check access token returned: " + accessToken.getToken());
                 TokenProviderResult result = new TokenProviderResult();
                 result.setAccessToken(accessToken.getToken());
                 result.setTenantId(trc.getTenantId());

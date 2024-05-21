@@ -4,6 +4,8 @@
 package com.azure.identity.extensions.implementation.credential.provider;
 
 import com.azure.core.credential.TokenCredential;
+import com.azure.core.http.policy.HttpLogOptions;
+import com.azure.core.util.HttpClientOptions;
 import com.azure.core.util.logging.ClientLogger;
 import com.azure.identity.ClientCertificateCredentialBuilder;
 import com.azure.identity.ClientSecretCredentialBuilder;
@@ -107,9 +109,7 @@ public class DefaultTokenCredentialProvider implements TokenCredentialProvider {
 
         LOGGER.verbose("Use the dac builder.");
         ExecutorService executorService = Executors.newFixedThreadPool(1, new ThreadFactory() {
-
             private int count = 0;
-
             @Override
             public Thread newThread(Runnable runnable) {
                 return new Thread(runnable, "az-id-test-" + count++);
@@ -120,7 +120,7 @@ public class DefaultTokenCredentialProvider implements TokenCredentialProvider {
                 .authorityHost(authorityHost)
                 .tenantId(tenantId)
                 .managedIdentityClientId(clientId)
-                .executorService(executorService)
+                .executorService(executorService).enableAccountIdentifierLogging().addPolicy(new HttpDebugLoggingPolicy())
                 .build();
     }
 

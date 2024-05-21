@@ -126,7 +126,7 @@ public class AzureAuthenticationTemplate {
     }
 
     Duration getBlockTimeout() {
-        return Duration.ofSeconds(30 * 4);
+        return Duration.ofSeconds(30 * 3);
     }
 
     AtomicBoolean getIsInitialized() {

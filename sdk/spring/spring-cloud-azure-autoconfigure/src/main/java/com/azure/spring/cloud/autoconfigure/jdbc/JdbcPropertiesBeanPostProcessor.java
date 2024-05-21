@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static com.azure.spring.cloud.autoconfigure.context.AzureContextUtils.DEFAULT_TOKEN_CREDENTIAL_BEAN_NAME;
 import static com.azure.spring.cloud.autoconfigure.implementation.jdbc.JdbcPropertyConstants.MYSQL_PROPERTY_CONNECTION_ATTRIBUTES_ATTRIBUTE_EXTENSION_VERSION;
 import static com.azure.spring.cloud.autoconfigure.implementation.jdbc.JdbcPropertyConstants.MYSQL_PROPERTY_CONNECTION_ATTRIBUTES_DELIMITER;
 import static com.azure.spring.cloud.autoconfigure.implementation.jdbc.JdbcPropertyConstants.MYSQL_PROPERTY_CONNECTION_ATTRIBUTES_KV_DELIMITER;
@@ -145,36 +146,15 @@ class JdbcPropertiesBeanPostProcessor implements BeanPostProcessor, EnvironmentA
 
         LOGGER.debug("TokenCredentialProviderOptions - {}", providerOptions.getClientId() + "," +
             providerOptions.getTenantId() + ", " + providerOptions.isManagedIdentityEnabled() + ", " + providerOptions.getTokenCredentialProviderClassName());
-        TokenCredentialProvider tokenCredentialProvider = TokenCredentialProvider.createDefault(providerOptions);
+//        TokenCredentialProvider tokenCredentialProvider = TokenCredentialProvider.createDefault(providerOptions);
 
-        TokenCredential tokenCredential = tokenCredentialProvider.get();
+//        TokenCredential tokenCredential = tokenCredentialProvider.get();
 
-        LOGGER.debug("processor token credential class {}, {}", tokenCredential, tokenCredential.getClass().getSimpleName());
+//        LOGGER.debug("processor token credential class {}, {}", tokenCredential, tokenCredential.getClass().getSimpleName());
 
-        int count = 20;
-        while (count > 0) {
-            count--;
-            LOGGER.debug("Sleeping 3 seconds.");
-            try {
-                TimeUnit.SECONDS.sleep(3);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        try {
-            TokenRequestContext request = new TokenRequestContext().addScopes("https://management.azure.com");
-            LOGGER.debug("First token");
-            AccessToken accessToken = tokenCredential.getToken(request).block(Duration.ofMinutes(3));
-            LOGGER.debug("Got first token: {}", accessToken != null && StringUtils.hasText(accessToken.getToken()));
-        } catch (Exception e) {
-            LOGGER.error("First getting token error", e);
-        } finally {
-            LOGGER.error("End the first getting token");
-        }
-
-        AuthProperty.TOKEN_CREDENTIAL_BEAN_NAME.setProperty(result, PASSWORDLESS_TOKEN_CREDENTIAL_BEAN_NAME);
-        applicationContext.registerBean(PASSWORDLESS_TOKEN_CREDENTIAL_BEAN_NAME, TokenCredential.class, () -> tokenCredential);
+//        AuthProperty.TOKEN_CREDENTIAL_BEAN_NAME.setProperty(result, PASSWORDLESS_TOKEN_CREDENTIAL_BEAN_NAME);
+        AuthProperty.TOKEN_CREDENTIAL_BEAN_NAME.setProperty(result, DEFAULT_TOKEN_CREDENTIAL_BEAN_NAME);
+//        applicationContext.registerBean(PASSWORDLESS_TOKEN_CREDENTIAL_BEAN_NAME, TokenCredential.class, () -> tokenCredential);
 
         LOGGER.debug("Add SpringTokenCredentialProvider as the default token credential provider.");
         AuthProperty.TOKEN_CREDENTIAL_PROVIDER_CLASS_NAME.setProperty(result, SPRING_TOKEN_CREDENTIAL_PROVIDER_CLASS_NAME);
@@ -183,6 +163,53 @@ class JdbcPropertiesBeanPostProcessor implements BeanPostProcessor, EnvironmentA
         databaseType.setDefaultEnhancedProperties(result);
 
         return result;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        if (bean instanceof TokenCredential && beanName.equalsIgnoreCase(PASSWORDLESS_TOKEN_CREDENTIAL_BEAN_NAME)) {
+            TokenCredential tokenCredential = (TokenCredential) bean;
+            sleep(5);
+            try {
+                TokenRequestContext request = new TokenRequestContext().addScopes("https://management.azure.com/.default");
+                LOGGER.debug("First token");
+                Mono<AccessToken> accessTokenMono = tokenCredential.getToken(request);
+                LOGGER.debug("First token mono token returned");
+                AccessToken accessToken = null;
+                try {
+                    accessToken = accessTokenMono.block(Duration.ofSeconds(10));
+                    LOGGER.debug("Got first token: {}", accessToken != null && StringUtils.hasText(accessToken.getToken()));
+                } finally {
+                    /*if (accessToken == null) {
+                        LOGGER.debug("Mono token timeout");
+                        accessTokenMono.subscribe(token -> {
+                            LOGGER.debug("First token: {}", token.getToken());
+                        });
+                    }*/
+                }
+                /*accessTokenMono.subscribe(token -> {
+                    LOGGER.debug("First token: {}", token.getToken());
+                });*/
+            } catch (Exception e) {
+                LOGGER.error("First getting token error", e);
+            } finally {
+                LOGGER.debug("End the first getting token");
+            }
+            sleep(5);
+        }
+        return bean;
+    }
+
+    private static void sleep(int count) {
+        while (count > 0) {
+            count--;
+            LOGGER.debug("Sleeping 3 seconds.");
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @Override
