@@ -47,7 +47,7 @@ parameters:
 - name: PreGenerationSteps
   type: stepList
   default: []
-- name: BuildTestOptions
+- name: BuildOptions
   type: string
   default: ''
 - name: ServiceDirectory
@@ -161,7 +161,7 @@ stages:
               PostSteps:
                 - ${{ parameters.PlatformPostSteps }}
                 - ${{ parameters.PostSteps }}
-              BuildTestOptions: ${{ parameters.BuildTestOptions }}
+              BuildOptions: ${{ parameters.BuildOptions }}
               EnvVars: ${{ parameters.EnvVars }}
               MaxParallel: ${{ parameters.MaxParallel }}
               TimeoutInMinutes: ${{ parameters.TimeoutInMinutes }}

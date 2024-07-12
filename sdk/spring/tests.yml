@@ -39,7 +39,7 @@ extends:
           TimeoutInMinutes: 240
           ServiceDirectory: spring
           TestName: Spring_IT
-          BuildTestOptions: '-Denforcer.skip'
+          BuildOptions: '-Denforcer.skip=true'
           TestGoals: "verify"
           TestOptions: -DskipSpringITs=false -Dcompiler.failondeprecatedstatus=-
           MatrixConfigs:
