@@ -80,12 +80,12 @@ public final class JdbcConnectionStringEnhancer {
                 this.enhancedProperties.put(key, value);
             } else if (!value.equals(valueProvidedInConnectionString)) {
                 if (silentWhenInconsistentValuePresent) {
-                    LOGGER.debug("The property {} is set to another value than default {}", key, value);
+                    LOGGER.debug("The property {} is set to another value than default {}.", key, value);
                 } else {
-                    throw new IllegalArgumentException("Inconsistent property of key [" + key +  "] detected");
+                    throw new IllegalArgumentException("Inconsistent property value of key [" + key +  "] detected.");
                 }
             } else {
-                LOGGER.debug("The property {} is already set", key);
+                LOGGER.debug("The property {} is already set.", key);
             }
         }
     }
