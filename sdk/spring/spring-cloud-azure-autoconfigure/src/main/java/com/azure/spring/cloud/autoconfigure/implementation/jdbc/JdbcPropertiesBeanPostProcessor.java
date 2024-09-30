@@ -6,6 +6,7 @@ import com.azure.core.credential.TokenCredential;
 import com.azure.identity.extensions.implementation.credential.TokenCredentialProviderOptions;
 import com.azure.identity.extensions.implementation.credential.provider.TokenCredentialProvider;
 import com.azure.identity.extensions.implementation.enums.AuthProperty;
+import com.azure.spring.cloud.autoconfigure.jdbc.DataSourcePropertiesTokenCredentialConfigurer;
 import com.azure.spring.cloud.autoconfigure.implementation.context.properties.AzureGlobalProperties;
 import com.azure.spring.cloud.core.implementation.util.AzurePasswordlessPropertiesUtils;
 import com.azure.spring.cloud.core.implementation.util.AzureSpringIdentifier;
@@ -26,8 +27,11 @@ import org.springframework.core.PriorityOrdered;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.azure.spring.cloud.autoconfigure.implementation.jdbc.JdbcPropertyConstants.MYSQL_PROPERTY_CONNECTION_ATTRIBUTES_ATTRIBUTE_EXTENSION_VERSION;
 import static com.azure.spring.cloud.autoconfigure.implementation.jdbc.JdbcPropertyConstants.MYSQL_PROPERTY_CONNECTION_ATTRIBUTES_DELIMITER;
@@ -50,6 +54,10 @@ class JdbcPropertiesBeanPostProcessor implements BeanPostProcessor, EnvironmentA
 
     private GenericApplicationContext applicationContext;
     private Environment environment;
+
+    private final AtomicBoolean beanPasswordlessTokenCredentialInitialized = new AtomicBoolean(false);
+
+    private final List<DataSourcePropertiesTokenCredentialConfigurer> configurers = new ArrayList<>();
 
     @Override
     public int getOrder() {
@@ -97,7 +105,7 @@ class JdbcPropertiesBeanPostProcessor implements BeanPostProcessor, EnvironmentA
 
             try {
                 JdbcConnectionStringEnhancer enhancer = new JdbcConnectionStringEnhancer(connectionString);
-                enhancer.enhanceProperties(buildEnhancedProperties(databaseType, properties), true);
+                enhancer.enhanceProperties(buildEnhancedProperties(databaseType, properties, dataSourceProperties), true);
                 enhanceUserAgent(databaseType, enhancer);
                 ((DataSourceProperties) bean).setUrl(enhancer.getJdbcUrl());
             } catch (IllegalArgumentException e) {
@@ -134,13 +142,19 @@ class JdbcPropertiesBeanPostProcessor implements BeanPostProcessor, EnvironmentA
         }
     }
 
-    private Map<String, String> buildEnhancedProperties(DatabaseType databaseType, AzureJdbcPasswordlessProperties properties) {
+    private Map<String, String> buildEnhancedProperties(DatabaseType databaseType, AzureJdbcPasswordlessProperties properties, DataSourceProperties dataSourceProperties) {
         Map<String, String> result = new HashMap<>();
-        TokenCredentialProvider tokenCredentialProvider = TokenCredentialProvider.createDefault(new TokenCredentialProviderOptions(properties.toPasswordlessProperties()));
-        TokenCredential tokenCredential = tokenCredentialProvider.get();
-
-        AuthProperty.TOKEN_CREDENTIAL_BEAN_NAME.setProperty(result, PASSWORDLESS_TOKEN_CREDENTIAL_BEAN_NAME);
-        applicationContext.registerBean(PASSWORDLESS_TOKEN_CREDENTIAL_BEAN_NAME, TokenCredential.class, () -> tokenCredential);
+        if (configurers.isEmpty()) {
+            if (beanPasswordlessTokenCredentialInitialized.compareAndSet(false, true)) {
+                TokenCredentialProvider tokenCredentialProvider = TokenCredentialProvider.createDefault(new TokenCredentialProviderOptions(properties.toPasswordlessProperties()));
+                TokenCredential tokenCredential = tokenCredentialProvider.get();
+                applicationContext.registerBean(PASSWORDLESS_TOKEN_CREDENTIAL_BEAN_NAME, TokenCredential.class, () -> tokenCredential);
+                LOGGER.debug("Register a shared {} bean {}.", TokenCredential.class.getSimpleName(), PASSWORDLESS_TOKEN_CREDENTIAL_BEAN_NAME);
+            }
+            AuthProperty.TOKEN_CREDENTIAL_BEAN_NAME.setProperty(result, PASSWORDLESS_TOKEN_CREDENTIAL_BEAN_NAME);
+        } else {
+            configurers.forEach(configurer -> configurer.configure(dataSourceProperties, result));
+        }
 
         LOGGER.debug("Add SpringTokenCredentialProvider as the default token credential provider.");
         AuthProperty.TOKEN_CREDENTIAL_PROVIDER_CLASS_NAME.setProperty(result, SPRING_TOKEN_CREDENTIAL_PROVIDER_CLASS_NAME);
@@ -170,5 +184,9 @@ class JdbcPropertiesBeanPostProcessor implements BeanPostProcessor, EnvironmentA
         AzurePasswordlessPropertiesUtils.mergeAzureCommonProperties(azureGlobalProperties, azurePasswordlessProperties, mergedProperties);
         return mergedProperties;
 
+    }
+
+    public void addDataSourcePropertiesTokenCredentialConfigurer(DataSourcePropertiesTokenCredentialConfigurer configurer) {
+        configurers.add(configurer);
     }
 }

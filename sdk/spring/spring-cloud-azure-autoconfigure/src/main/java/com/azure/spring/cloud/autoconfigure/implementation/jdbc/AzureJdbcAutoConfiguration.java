@@ -3,6 +3,8 @@
 package com.azure.spring.cloud.autoconfigure.implementation.jdbc;
 
 import com.azure.identity.extensions.implementation.template.AzureAuthenticationTemplate;
+import com.azure.spring.cloud.autoconfigure.jdbc.DataSourcePropertiesTokenCredentialConfigurer;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -30,8 +32,10 @@ public class AzureJdbcAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @DependsOn("springTokenCredentialProviderContextProvider")
-    JdbcPropertiesBeanPostProcessor jdbcConfigurationPropertiesBeanPostProcessor() {
-        return new JdbcPropertiesBeanPostProcessor();
+    JdbcPropertiesBeanPostProcessor jdbcConfigurationPropertiesBeanPostProcessor(ObjectProvider<DataSourcePropertiesTokenCredentialConfigurer> configurers) {
+        JdbcPropertiesBeanPostProcessor processor = new JdbcPropertiesBeanPostProcessor();
+        configurers.orderedStream().forEach(processor::addDataSourcePropertiesTokenCredentialConfigurer);
+        return processor;
     }
 
     @Bean
