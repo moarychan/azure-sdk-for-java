@@ -81,7 +81,7 @@ public enum AuthProperty {
     /**
      *  Whether to enable access token cache.
      */
-    ACCESS_TOKEN_CACHE_ENABLED("azure.accessTokenCacheEnabled", "true",
+    CACHE_ENABLED("azure.cacheEnabled", "true",
         "Whether to enable the token cache.", false);
 
     String propertyKey;
