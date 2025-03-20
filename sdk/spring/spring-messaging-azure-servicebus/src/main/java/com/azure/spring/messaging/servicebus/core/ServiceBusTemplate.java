@@ -81,7 +81,13 @@ public class ServiceBusTemplate implements SendOperation {
         }
         ServiceBusSenderAsyncClient senderAsyncClient = this.producerFactory.createProducer(destination, currentEntityType);
         ServiceBusMessage serviceBusMessage = messageConverter.fromMessage(message, ServiceBusMessage.class);
-        return senderAsyncClient.scheduleMessage(serviceBusMessage, scheduledEnqueueTime);
+
+        OffsetDateTime targetScheduledEnqueueTime = scheduledEnqueueTime;
+        if (scheduledEnqueueTime == null) {
+            targetScheduledEnqueueTime = serviceBusMessage.getScheduledEnqueueTime();
+        }
+
+        return senderAsyncClient.scheduleMessage(serviceBusMessage, targetScheduledEnqueueTime);
     }
 
     /**
@@ -130,8 +136,8 @@ public class ServiceBusTemplate implements SendOperation {
      * @throws IllegalStateException if sender is already disposed.
      */
     public Mono<Void> cancelScheduledMessage(String destination,
-                                                 ServiceBusEntityType entityType,
-                                                 long sequenceNumber) {
+                                             ServiceBusEntityType entityType,
+                                             long sequenceNumber) {
         ServiceBusEntityType currentEntityType = entityType;
         if (entityType == null && defaultEntityType != null) {
             currentEntityType = defaultEntityType;
